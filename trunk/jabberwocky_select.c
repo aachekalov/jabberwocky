@@ -64,7 +64,7 @@ int getDBFD(char *base){
     char *buf = "/";
     strcat(buf, base);
     strcat(dbPath, buf);
-    strcat(dbPath, buf); //  extention????
+    strcat(dbPath, buf); //  extension????
     
     return open(dbPath, O_RDWR);
 }
