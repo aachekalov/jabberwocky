@@ -32,4 +32,5 @@ int main(int argc, char *argv[]){
        printf("\nError in deleting database.\n");
        exit(-1);          
     }
+    return 0;
 }
