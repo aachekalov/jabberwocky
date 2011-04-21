@@ -1,8 +1,20 @@
-jabberwocky: jabberwocky.o
+jwcreatedb: jabberwocky_create.o
 	gcc -o $@ $^
 
-jabberwocky.o: jabberwocky.c
-	gcc -c $^
+jabberwocky_create.o: jabberwocky_create.c jabberwocky_func.h
+	gcc -c jabberwocky_create.c
+   
+jwdropdb: jabberwocky_drop.o
+	gcc -o $@ $^
+   
+jabberwocky_drop.o: jabberwocky_drop.c jabberwocky_func.h
+	gcc -c jabberwocky_drop.c
+
+jwselectdb: jabberwocky_select.o
+	gcc -o $@ $^
+   
+jabberwocky_select.o: jabberwocky_select.c jabberwocky_func.h
+	gcc -c jabberwocky_select.c
 
 clean:
 	rm -f *~ *.o jabberwocky
