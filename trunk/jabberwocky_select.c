@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -22,38 +21,45 @@ int main(int argc, char *argv[]){
     char *dbName = argv[1];
     int fd = getDBFD(dbName);
     if (fd < 0){
-       printf("\nDatabase %s was not found, sorry.\n", dbName); // bad! an error is possible, not only file is not exist
+       perror("\nError in db opening"); 
        exit(-1);         
     }
     
     while(1){
        printf("%s > ", dbName);
-       char *query;
+       char *query, *firstWord;
+       query = (char *)malloc(511);
        scanf("%s", query);
        char *operation = cutTheFirstWord(&query); 
        strupr(operation); // Special for Alexey 
+       
        int ret = 0;
+       
        if (!strcmp(operation, "CREATE")){
-             cutTheFirstWord(&query);
-             ret = createtable(fd, query);
+             firstWord = cutTheFirstWord(&query);
+             printf("\ncreatetable works with \"%s\"", query);//ret = createtable(fd, query);
        }else if (!strcmp(operation, "INSERT")){ 
-             cutTheFirstWord(&query);
-             ret = insertinto(fd, query);  
+             firstWord = cutTheFirstWord(&query);
+             printf("\ninsertinto works with \"%s\"", query);//ret = insertinto(fd, query);  
        }else if (!strcmp(operation, "UPDATE")){
-             ret = update(fd, query); 
+             printf("\nupdate works with \"%s\"", query);//ret = update(fd, query); 
        }else if (!strcmp(operation, "DROP")){
-             cutTheFirstWord(&query);
-             ret = droptable(fd, query);
+             firstWord = cutTheFirstWord(&query);
+             printf("\ndroptable works with \"%s\"", query);//ret = droptable(fd, query);
        }else if (!strcmp(operation, "DELETE")){
-             cutTheFirstWord(&query);
-             ret = deletefrom(fd, query);      
+             firstWord = cutTheFirstWord(&query);
+             printf("\ndeletefrom works with \"%s\"", query);//ret = deletefrom(fd, query);      
        }else if (!strcmp(operation, "SELECT")){
-             ret = select(fd, query);
+             printf("\nselect works with \"%s\"", query);//ret = select(fd, query);
        }else{
              ret = -1;   // here must be a timer, pthread_create and some cruel line   
        }
        if (ret < 0)
-             printf("\nWrong query. Please, be more attentive.\n");    
+             printf("\nWrong query. Please, be more attentive.\n");
+              
+       free(firstWord);
+       free(operation);
+       free(query);   
     }
     close(fd);
     return 0;   
@@ -61,18 +67,23 @@ int main(int argc, char *argv[]){
 
 int getDBFD(char *base){
     char *dbPath = getDBPath();
-    char *buf = "/";
+    char *buf = (char *)calloc(255, sizeof(char));
+    *buf = '/';
     strcat(buf, base);
     strcat(dbPath, buf);
-    strcat(dbPath, buf); //  extension????
+    strcat(dbPath, buf); //  extention - solved
+    int fd = open(dbPath, O_RDWR);
     
-    return open(dbPath, O_RDWR);
+    free(dbPath);
+    free(buf);
+    
+    return fd;
 }
 
 char *cutTheFirstWord(char **query){
-     int len = strcspn((*query), " "); 
-     char *firstWord = "";
+     int len = strcspn(*query, " "); 
+     char *firstWord = (char *)calloc(255, sizeof(char));
      strncat(firstWord, (*query), len);
-     (* query) += ++len;
+     (*query) += ++len;
      return firstWord; 
 }
