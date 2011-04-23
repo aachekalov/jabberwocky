@@ -20,19 +20,25 @@ int main(int argc, char *argv[]){
     
     char *dbName = argv[1];
     if (isDBExist(dbName)){
-       printf("\nDatabase %s is already exist, sorry.\n", dbName);// bad! an error is possible, not only file is exist
+       perror("\nDatabase already exists or an error occurred");
        exit(-1);          
     }
     
     char *dbPath = getDBPath();
-    char *buf = (char *)malloc(255 * sizeof(char));
-    *buf = '/';
-    strcat(buf, dbName);
-    strcat(dbPath, buf);
-    strcat(dbPath, buf); //  expansion - solved; point before filename
+    strcat(dbPath, "/");
+    strcat(dbPath, dbName);
+    
+    if(!mkdir(dbPath)){
+       perror("\nError in creating database");
+       exit(-1);  
+    }      
+    
+    strcat(dbPath, "/.");
+    strcat(dbPath, dbName);//  expansion - solved
+    
     int fd = open(dbPath, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0){
-       printf("\nError in creating database.\n");
+       perror("\nError in creating database");
        exit(-1);  
     }
     free(dbPath);
