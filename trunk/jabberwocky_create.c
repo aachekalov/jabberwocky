@@ -25,15 +25,17 @@ int main(int argc, char *argv[]){
     }
     
     char *dbPath = getDBPath();
-    char *buf = "/";
+    char *buf = (char *)malloc(255 * sizeof(char));
+    *buf = '/';
     strcat(buf, dbName);
     strcat(dbPath, buf);
-    strcat(dbPath, buf); //  expansion????
+    strcat(dbPath, buf); //  expansion - solved; point before filename
     int fd = open(dbPath, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0){
        printf("\nError in creating database.\n");
        exit(-1);  
     }
+    free(dbPath);
     close(fd);
     return 0;   
 }
