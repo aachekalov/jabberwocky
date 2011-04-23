@@ -20,8 +20,9 @@ int main(int argc, char *argv[]){
     }
     
     char *dbName = argv[1];
-    if (!isDBExist(dbName)){
-       perror("\nDatabase was not found or an error occurred"); // !!
+    int exist = isDBExist(dbName);
+    if (exist <= 0){
+       perror("\nDatabase was not found or an error occurred"); 
        exit(-1);          
     }
     
