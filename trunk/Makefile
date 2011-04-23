@@ -16,5 +16,10 @@ jwselectdb: jabberwocky_select.o
 jabberwocky_select.o: jabberwocky_select.c jabberwocky_func.h
 	gcc -c jabberwocky_select.c
 
+.PHONY : create clean
+
 clean:
 	rm -f *~ *.o jabberwocky
+   
+create:
+  if NOT EXIST "$(HOMEPATH)/Jabberwocky/DBs" mkdir "$(HOMEPATH)/Jabberwocky/DBs" # try $(HOME) 
