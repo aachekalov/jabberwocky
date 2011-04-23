@@ -2,7 +2,7 @@
 
 char * getDBPath(){
      char *homePath = getenv("HOME");
-    char *dbPath = 0;
+    char *dbPath = (char *)malloc(255*sizeof(char));
     strcpy(dbPath, homePath);
     strcat(dbPath, "/Jabberwocky/DBs");
     return dbPath;
@@ -10,8 +10,12 @@ char * getDBPath(){
 
 int isDBExist(char *base){
     struct dirent *entry;
-    int ret = -1;
-    DIR *dir = opendir(getDBPath());
+    int ret = 1;
+    char *dbPath = getDBPath(); 
+    DIR *dir = opendir(dbPath);
+    
+    if (!dir)
+      ret = -1;
     
     errno = 0;
     while((entry = readdir(dir)) != NULL)
@@ -20,11 +24,10 @@ int isDBExist(char *base){
                  break;
             }
     
-    if (errno && !entry){
-       closedir(dir);
-       return -1;
-    }
+    if (errno && !entry)
+       ret = -1;
     
+    free(dbPath);
     closedir(dir);
     return ret;
 }
