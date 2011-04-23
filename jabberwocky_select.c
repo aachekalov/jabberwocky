@@ -37,18 +37,18 @@ int main(int argc, char *argv[]){
        
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(&query);
-             printf("\ncreatetable works with \"%s\"", query);//ret = createtable(fd, query);
+             printf("\ncreatetable works with \"%s\"", query);//ret = create_table(fd, query);
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(&query);
-             printf("\ninsertinto works with \"%s\"", query);//ret = insertinto(fd, query);  
+             printf("\ninsertinto works with \"%s\"", query);//ret = insert_into(fd, query);  
        }else if (!strcmp(operation, "UPDATE")){
              printf("\nupdate works with \"%s\"", query);//ret = update(fd, query); 
        }else if (!strcmp(operation, "DROP")){
              firstWord = cutTheFirstWord(&query);
-             printf("\ndroptable works with \"%s\"", query);//ret = droptable(fd, query);
+             printf("\ndroptable works with \"%s\"", query);//ret = drop_table(fd, query);
        }else if (!strcmp(operation, "DELETE")){
              firstWord = cutTheFirstWord(&query);
-             printf("\ndeletefrom works with \"%s\"", query);//ret = deletefrom(fd, query);      
+             printf("\ndeletefrom works with \"%s\"", query);//ret = delete_from(fd, query);      
        }else if (!strcmp(operation, "SELECT")){
              printf("\nselect works with \"%s\"", query);//ret = select(fd, query);
        }else{
