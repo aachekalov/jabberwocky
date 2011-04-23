@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 
 #include "Jabberwocky_func.h"
@@ -20,17 +21,20 @@ int main(int argc, char *argv[]){
     
     char *dbName = argv[1];
     if (!isDBExist(dbName)){
-       printf("\nDatabase %s was not found, sorry.\n", dbName); // bad! an error is possible, not only file is not exist
+       perror("\nDatabase was not found or an error occurred"); // !!
        exit(-1);          
     }
     
     char *dbPath = getDBPath();
-    char *buf = "/";
+    char *buf = (char *)malloc(255*sizeof(char));
+    *buf = '/';
     strcat(buf, dbName);
     strcat(dbPath, buf);
     if (rmdir(dbPath) < 0){
-       printf("\nError in deleting database.\n");
+       perror("\nError in deleting database");
        exit(-1);          
     }
+    free(buf);
+    free(dbPath);
     return 0;
 }
