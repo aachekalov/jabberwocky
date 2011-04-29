@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "Jabberwocky_func.h"
+#include "jabberwocky_func.h"
 
 char * getDBPath();
 
@@ -14,7 +14,7 @@ char *cutTheFirstWord(char **);
 
 int main(int argc, char *argv[]){
     if (argc != 2){
-       printf("\nUsage: %s, <base name>\n", argv[0]);
+       printf("\nUsage: %s <base name>\n", argv[0]);
        exit(-1);         
     }
     
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
        query = (char *)malloc(511);
        scanf("%s", query);
        char *operation = cutTheFirstWord(&query); 
-       strupr(operation); // Special for Alexey 
+       //operation = strupr(operation); // Special for Alexey 
        
        int ret = 0;
        
@@ -67,15 +67,14 @@ int main(int argc, char *argv[]){
 
 int getDBFD(char *base){
     char *dbPath = getDBPath();
-    char *buf = (char *)calloc(255, sizeof(char));
-    *buf = '/';
-    strcat(buf, base);
-    strcat(dbPath, buf);
-    strcat(dbPath, buf); //  extention - solved
+     
+    strcat(dbPath, "/");
+    strcat(dbPath, base);
+    strcat(dbPath, "/.");
+    strcat(dbPath, base); //  extention - solved
     int fd = open(dbPath, O_RDWR);
     
     free(dbPath);
-    free(buf);
     
     return fd;
 }
@@ -83,7 +82,7 @@ int getDBFD(char *base){
 char *cutTheFirstWord(char **query){
      int len = strcspn(*query, " "); 
      char *firstWord = (char *)calloc(255, sizeof(char));
-     strncat(firstWord, (*query), len);
+     strncpy(firstWord, (*query), len);
      (*query) += ++len;
      return firstWord; 
 }
