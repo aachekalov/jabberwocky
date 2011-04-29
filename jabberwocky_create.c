@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "Jabberwocky_func.h"
+#include "jabberwocky_func.h"
 
 int isDBExist(char *);
 char * getDBPath();
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     }
     
     char *dbName = argv[1];
-    if (isDBExist(dbName)){
+    if (!isDBExist(dbName)){
        perror("\nDatabase already exists or an error occurred");
        exit(-1);          
     }
@@ -28,9 +28,9 @@ int main(int argc, char *argv[]){
     strcat(dbPath, "/");
     strcat(dbPath, dbName);
     
-    if(!mkdir(dbPath)){
+    if(mkdir(dbPath, 0744)){
        perror("\nError in creating database");
-       exit(-1);  
+       exit(-1);
     }      
     
     strcat(dbPath, "/.");

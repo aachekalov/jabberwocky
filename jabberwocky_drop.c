@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "Jabberwocky_func.h"
+#include "jabberwocky_func.h"
 
 int isDBExist(char *);
 char * getDBPath();
