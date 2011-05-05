@@ -53,15 +53,18 @@ int main(int argc, char *argv[]){
              printf("\ndeletefrom works with \"%s\"", query);//ret = delete_from(fd, query);      
        }else if (!strcmp(operation, "SELECT")){
              printf("\nselect works with \"%s\"", query);//ret = select(fd, query);
+       }else if (!strcmp(operation, "EXIT")){
+		     // TODO: free memory
+		     return 0;
        }else{
              ret = -1;   // here must be a timer, pthread_create and some cruel line   
        }
        if (ret < 0)
-             printf("\nWrong query. Please, be more attentive.\n");
-              
-       free(firstWord);
+             printf("\tWrong query. Please, be more attentive.\n");
+       // TODO: fix pointers
+       /*free(firstWord);
        free(operation);
-       free(query);   
+       free(query);*/
     }
     close(fd);
     return 0;   
