@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include "jabberwocky_func.h"
+#include "create_table.h"
 
 char * getDBPath();
 
@@ -37,7 +38,8 @@ int main(int argc, char *argv[]){
        
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(&query);
-             printf("\ncreatetable works with \"%s\"", query);//ret = create_table(fd, query);
+             printf("\ncreatetable works with \"%s\"", query);
+             ret = create_table(fd, query);
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(&query);
              printf("\ninsertinto works with \"%s\"", query);//ret = insert_into(fd, query);  
