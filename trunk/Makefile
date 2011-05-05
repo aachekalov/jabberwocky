@@ -1,4 +1,4 @@
-all: jwcreatedb jwdropdb jwselectdb create
+all: jwcreatedb jwdropdb jwselectdb create_work_dir
 
 jwcreatedb: jabberwocky_create.o
 	gcc -o $@ $^
@@ -12,27 +12,27 @@ jwdropdb: jabberwocky_drop.o
 jabberwocky_drop.o: jabberwocky_drop.c
 	gcc -c $^
 
-jwselectdb: jabberwocky_select.o
+jwselectdb: jabberwocky_select.o create_table.o parsing_tools.o
 	gcc -o $@ $^
 
 jabberwocky_select.o: jabberwocky_select.c
 	gcc -c $^
 
-#.PHONY : create clean
+create_table.o: create_table.c
+	gcc -c $^
 
-create:
-#if NOT EXIST "$(HOME)/Jabberwocky/DBs";	then mkdir "$(HOME)/Jabberwocky/DBs"; fi
-#	@if test -d $(HOME)/Jabberwocky; then \
-#	mkdir $(HOME)/Jabberwocky; \
-#	mkdir $(HOME)/Jabberwocky/DBs; \
-#	fi
-	@if [ -f $(HOME)/Jabberwocky ]; then \
-	echo file exist; \
-	else \
-	echo no; \
+parsing_tools.o: parsing_tools.c
+	gcc -c $^
+
+.PHONY : create_work_dir clean
+.NOPARALLEL : create_work_dir
+
+create_work_dir:
+	@if [ ! -d $(HOME)/Jabberwocky ]; then \
 	mkdir $(HOME)/Jabberwocky; \
 	mkdir $(HOME)/Jabberwocky/DBs; \
 	fi
 
 clean:
-	rm -f -r *~ *.o jwcreatedb jwdropdb jwselectdb $(HOME)/Jabberwocky
+	rm -f *~ *.o jwcreatedb jwdropdb jwselectdb
+	rm -f -r $(HOME)/Jabberwocky
