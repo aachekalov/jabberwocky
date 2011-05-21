@@ -9,9 +9,6 @@
 
 #include "jabberwocky_func.h"
 
-int isDBExist(char *);
-char * getDBPath();
-
 int main(int argc, char *argv[]){
     if (argc != 2){
        printf("\nUsage: %s, <base name>\n", argv[0]);
@@ -20,7 +17,7 @@ int main(int argc, char *argv[]){
     
     char *dbName = argv[1];
     if (!isDBExist(dbName)){
-       perror("\nDatabase already exists or an error occurred");
+       printf("\nDatabase already exists or an error occurred.\n");
        exit(-1);          
     }
     
@@ -36,7 +33,7 @@ int main(int argc, char *argv[]){
     strcat(dbPath, "/.");
     strcat(dbPath, dbName);//  expansion - solved
     
-    int fd = open(dbPath, O_WRONLY | O_CREAT | O_TRUNC);
+    int fd = open(dbPath, O_WRONLY | O_CREAT | O_TRUNC, 0744);
     if (fd < 0){
        perror("\nError in creating database");
        exit(-1);  
