@@ -77,4 +77,3 @@ int removeDir(char *dirPath) {
 	}
     return 0;
 }
-

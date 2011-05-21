@@ -1,21 +1,24 @@
 all: jwcreatedb jwdropdb jwselectdb create_work_dir
 
-jwcreatedb: jabberwocky_create.o
+jwcreatedb: jabberwocky_create.o jabberwocky_func.o
 	gcc -o $@ $^
 
 jabberwocky_create.o: jabberwocky_create.c
 	gcc -c $^
 
-jwdropdb: jabberwocky_drop.o
+jwdropdb: jabberwocky_drop.o jabberwocky_func.o
 	gcc -o $@ $^
 
 jabberwocky_drop.o: jabberwocky_drop.c
 	gcc -c $^
 
-jwselectdb: jabberwocky_select.o create_table.o parsing_tools.o
+jwselectdb: jabberwocky_select.o jabberwocky_func.o jabberwocky_func.o create_table.o parsing_tools.o
 	gcc -o $@ $^
 
 jabberwocky_select.o: jabberwocky_select.c
+	gcc -c $^
+
+jabberwocky_func.o: jabberwocky_func.c
 	gcc -c $^
 
 create_table.o: create_table.c

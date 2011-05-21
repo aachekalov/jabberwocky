@@ -8,10 +8,10 @@
 #include "jabberwocky_func.h"
 #include "create_table.h"
 
-char * getDBPath();
-
 int getDBFD(char *);
-char *cutTheFirstWord(char **);
+char *cutTheFirstWord(char *, char**);
+void strup(char *str);
+
 
 int main(int argc, char *argv[]){
     if (argc != 2){
@@ -29,42 +29,45 @@ int main(int argc, char *argv[]){
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;
-       query = (char *)malloc(511);
-       scanf("%s", query);
-       char *operation = cutTheFirstWord(&query); 
-       //operation = strupr(operation); // Special for Alexey 
+       query = (char *)malloc(1024);
+       fgets(query, 1024, stdin);
+       query[strlen(query) - 1] = '\0';
+       char * newquery;
+       char *operation = cutTheFirstWord(query, &newquery); 
+       strup(operation); // Special for Alexey 
        
        int ret = 0;
-       
        if (!strcmp(operation, "CREATE")){
-             firstWord = cutTheFirstWord(&query);
-             printf("\ncreatetable works with \"%s\"", query);
-             ret = create_table(fd, query);
+             firstWord = cutTheFirstWord(newquery, &newquery);
+             printf("\ncreatetable works with \"%s\"\n", newquery);
+             ret = create_table(fd, newquery);
        }else if (!strcmp(operation, "INSERT")){ 
-             firstWord = cutTheFirstWord(&query);
-             printf("\ninsertinto works with \"%s\"", query);//ret = insert_into(fd, query);  
+             firstWord = cutTheFirstWord(newquery, &newquery);
+             printf("\ninsertinto works with \"%s\"\n", newquery);//ret = insert_into(fd, query);  
        }else if (!strcmp(operation, "UPDATE")){
-             printf("\nupdate works with \"%s\"", query);//ret = update(fd, query); 
+             printf("\nupdate works with \"%s\"\n", newquery);//ret = update(fd, query); 
        }else if (!strcmp(operation, "DROP")){
-             firstWord = cutTheFirstWord(&query);
-             printf("\ndroptable works with \"%s\"", query);//ret = drop_table(fd, query);
+             firstWord = cutTheFirstWord(newquery, &newquery);
+             printf("\ndroptable works with \"%s\"\n", newquery);//ret = drop_table(fd, query);
        }else if (!strcmp(operation, "DELETE")){
-             firstWord = cutTheFirstWord(&query);
-             printf("\ndeletefrom works with \"%s\"", query);//ret = delete_from(fd, query);      
+             firstWord = cutTheFirstWord(newquery, &newquery);
+             printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, query);      
        }else if (!strcmp(operation, "SELECT")){
-             printf("\nselect works with \"%s\"", query);//ret = select(fd, query);
-       }else if (!strcmp(operation, "EXIT")){
+             printf("\nselect works with \"%s\"\n", newquery);//ret = select(fd, query);
+       }else if (!strcmp(operation, "QUIT") || !strcmp(operation, "Q") || 
+				 !strcmp(operation, "EXIT") || !strcmp(operation, "E")){
 		     // TODO: free memory
-		     return 0;
+		     free(query);
+		     break;
+	   }else if (!strcmp(operation, "")){
+		     continue;     
        }else{
              ret = -1;   // here must be a timer, pthread_create and some cruel line   
        }
        if (ret < 0)
              printf("\tWrong query. Please, be more attentive.\n");
-       // TODO: fix pointers
-       /*free(firstWord);
-       free(operation);
-       free(query);*/
+       
+       free(query);
     }
     close(fd);
     return 0;   
@@ -72,7 +75,7 @@ int main(int argc, char *argv[]){
 
 int getDBFD(char *base){
     char *dbPath = getDBPath();
-     
+    
     strcat(dbPath, "/");
     strcat(dbPath, base);
     strcat(dbPath, "/.");
@@ -84,10 +87,19 @@ int getDBFD(char *base){
     return fd;
 }
 
-char *cutTheFirstWord(char **query){
-     int len = strcspn(*query, " "); 
-     char *firstWord = (char *)calloc(255, sizeof(char));
-     strncpy(firstWord, (*query), len);
-     (*query) += ++len;
+char *cutTheFirstWord(char *query, char **newquery){
+     int len = strcspn(query, " "); 
+     char *firstWord = (char *)calloc(1024, sizeof(char));
+     strncpy(firstWord, query, len);
+     (*newquery) = query + len + 1;
      return firstWord; 
+}
+
+void strup(char *str) 
+{ 
+	char *s = str;
+	while (*s){ 
+		*s = toupper((unsigned char) *s); 
+		s++; 
+	} 
 }
