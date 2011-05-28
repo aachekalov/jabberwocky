@@ -23,9 +23,9 @@ char *parse_table_name(char *create_query, size_t query_len, size_t table_len) {
 	if (check_table_name_length(query_len, table_len)) {
 		return NULL;
 	}
-	char *table_name = (char *) malloc(table_len * sizeof(char));
+	char *table_name = (char *) calloc(table_len + 1, sizeof(char));
 	strncpy(table_name, create_query, table_len);
-	trim(table_name);
+	//trim(table_name);
 	if (check_identifier_name(table_name)) {
 		free(table_name);
 		return NULL;
@@ -37,14 +37,16 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
 	trim(column_declare_str);
 
-	column->column_name = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
+	column->column_name = cutTheFirstWord(column_declare_str, &column_declare_str);
+	//trim(column->column_name);
 	if (check_identifier_name(column->column_name)) {
 		return NULL;
 	}
 
-	char *type = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
+	trim(column_declare_str);
+	char *type = cutTheFirstWord(column_declare_str, &column_declare_str);
 	strup(type);
-	if (!strcmp(type, INT) {
+	if (!strcmp(type, INT)) {
 		column->type = 1;
 	} else if (!strcmp(type, FLOAT)) {
 		column->type = 2;
@@ -54,10 +56,12 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 		return NULL;
 	}
 
+	column_declare_str = trim(column_declare_str);
 	char *constraint;
-	while ((constraint = trim(cutTheFirstWord(column_declare_str, &column_declare_str)) != NULL) {
-		if (!strcmp(constraint, NOT) {
-			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), _NULL)) {
+	while ((constraint = cutTheFirstWord(column_declare_str, &column_declare_str)) != "") {
+		if (!strcmp(constraint, NOT)) {
+			trim(column_declare_str);
+			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), _NULL)) {
 				column->constraints += 1;
 			} else {
 				return NULL;
@@ -67,13 +71,15 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 		} else if (!strcmp(constraint, UNIQUE)) {
 			column->constraints += 2;
 		} else if (!strcmp(constraint, PRIMARY)) {
-			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), KEY)) {
+			trim(column_declare_str);
+			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), KEY)) {
 				column->constraints += 4;
 			} else {
 				return NULL;
 			}
 		} else if (!strcmp(constraint, FOREIGN)) {
-			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), KEY)) {
+			trim(column_declare_str);
+			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), KEY)) {
 				column->constraints += 8;
 			} else {
 				return NULL;
@@ -81,6 +87,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 		} else {
 			return NULL;
 		}
+		trim(column_declare_str);
 	}
 
 	if (1 == 0)
@@ -92,7 +99,7 @@ struct column_declare *parse_columns(char *create_query, size_t query_len, size_
 	struct column_declare *columns;
 	int column_number = 0;
 	int i;
-	for (i = table_len + 1; i < query_len; i++) {
+	for (i = table_len + 2; i < query_len; i++) {
 		if (create_query[i] == ',') {
 			//strcpy(columns, create_query);
 			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
@@ -111,7 +118,7 @@ struct column_declare *parse_columns(char *create_query, size_t query_len, size_
 
 struct table *parse(char *create_query) {
 	struct table *result = (struct table *) malloc(sizeof(struct table));
-	trim(create_query);
+	//trim(create_query);
 	size_t query_len = strlen(create_query);
 	size_t table_len = strcspn(create_query, "(");
 

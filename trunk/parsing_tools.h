@@ -1,6 +1,6 @@
-#define base_accepting_chars "etaonrishdlcmupgywbvkjxzETAONRISHDLCMUPGYWBVKJXZ" // skip 1 char (guess what?)
+#define base_accepting_chars "etaonrishdlfcmupgywbvkjxzqETAONRISHDLFCMUPGYWBVKJXZQ" // skip 1 char (guess what?)
 #define free_accepting_chars "_1234567890"
-#define trimming_chars " \n\t\r"
+#define trimming_chars " \t\n\r"
 
 #define INT   "INTEGER" /// 1
 #define FLOAT "FLOAT"   /// 2
@@ -13,7 +13,7 @@
 #define FOREIGN "FOREIGN" /// 8
 #define KEY     "KEY"
 
-void trim(char* str);
+char *trim(char* str);
 
 /**
  * Test 1st character in identifier name
