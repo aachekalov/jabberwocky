@@ -1,6 +1,10 @@
 #define base_accepting_chars "etaonrishdlcmupgywbvkjxzETAONRISHDLCMUPGYWBVKJXZ" // skip 1 char (guess what?)
 #define free_accepting_chars "_1234567890"
 #define trimming_chars " \n\t\r"
+#define INT   "INTEGER" /// 1
+#define FLOAT "FLOAT"   /// 2
+#define CHAR  "CHAR"    /// 4
+
 
 void trim(char* str);
 
