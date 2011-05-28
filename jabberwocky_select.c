@@ -26,6 +26,8 @@ int main(int argc, char *argv[]){
        exit(-1);         
     }
     
+    //TODO: вывалить в массив структур
+    
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;
@@ -80,7 +82,7 @@ int getDBFD(char *base){
     strcat(dbPath, base);
     strcat(dbPath, "/.");
     strcat(dbPath, base); //  extention - solved
-    int fd = open(dbPath, O_RDWR);
+    int fd = open(dbPath, O_RDWR | O_APPEND);
     
     free(dbPath);
     
@@ -88,7 +90,7 @@ int getDBFD(char *base){
 }
 
 char *cutTheFirstWord(char *query, char **newquery){
-     int len = strcspn(query, " "); 
+     int len = strcspn(query, " ");  // TODO: multiple tabs, multiple spaces
      char *firstWord = (char *)calloc(1024, sizeof(char));
      strncpy(firstWord, query, len);
      (*newquery) = query + len + 1;
