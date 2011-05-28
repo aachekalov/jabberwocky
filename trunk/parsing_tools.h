@@ -1,10 +1,17 @@
 #define base_accepting_chars "etaonrishdlcmupgywbvkjxzETAONRISHDLCMUPGYWBVKJXZ" // skip 1 char (guess what?)
 #define free_accepting_chars "_1234567890"
 #define trimming_chars " \n\t\r"
+
 #define INT   "INTEGER" /// 1
 #define FLOAT "FLOAT"   /// 2
 #define CHAR  "CHAR"    /// 4
 
+#define NOT     "NOT"     /// 1
+#define _NULL   "NULL"    /// 0
+#define UNIQUE  "UNIQUE"  /// 2
+#define PRIMARY "PRIMARY" /// 4
+#define FOREIGN "FOREIGN" /// 8
+#define KEY     "KEY"
 
 void trim(char* str);
 
@@ -26,3 +33,7 @@ int free_accept(char c);
  * Check identifier name: [:alpha:][:word:]*
  */
 int check_identifier_name(char *name);
+
+char *cutTheFirstWord(char *query, char **newquery);
+
+void strup(char *str);

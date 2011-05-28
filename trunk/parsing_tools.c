@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "parsing_tools.h"
@@ -55,4 +56,23 @@ int check_identifier_name(char *name) {
 		}
 	}
 	return 0;
+}
+
+char *cutTheFirstWord(char *query, char **newquery){
+     int len = strcspn(query, " "); 
+     if (len == strlen(query))
+		return NULL;
+     char *firstWord = (char *)calloc(1024, sizeof(char));
+     strncpy(firstWord, query, len);
+     (*newquery) = query + len + 1;
+     return firstWord; 
+}
+
+void strup(char *str)
+{ 
+	char *s = str;
+	while (*s){ 
+		*s = toupper((unsigned char) *s); 
+		s++; 
+	} 
 }

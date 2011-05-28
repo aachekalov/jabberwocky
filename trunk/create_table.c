@@ -33,16 +33,58 @@ char *parse_table_name(char *create_query, size_t query_len, size_t table_len) {
 	return table_name;
 }
 
-struct column_declare parse_column_declare(char *column_declare_str) {
-	struct column_declare column;
+struct column_declare *parse_column_declare(char *column_declare_str) {
+	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
 	trim(column_declare_str);
 
-	//column.column_name = next_token(column_declare_str);
+	column->column_name = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
+	if (check_identifier_name(column->column_name)) {
+		return NULL;
+	}
 
-	//column.type = next_token(column_declare_str);
+	char *type = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
+	strup(type);
+	if (!strcmp(type, INT) {
+		column->type = 1;
+	} else if (!strcmp(type, FLOAT)) {
+		column->type = 2;
+	} else if (!strcmp(type, CHAR)) {
+		column->type = 4;
+	} else {
+		return NULL;
+	}
 
-	//column.constraints = next_token(column_declare_str);
+	char *constraint;
+	while ((constraint = trim(cutTheFirstWord(column_declare_str, &column_declare_str)) != NULL) {
+		if (!strcmp(constraint, NOT) {
+			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), _NULL)) {
+				column->constraints += 1;
+			} else {
+				return NULL;
+			}
+		} else if (!strcmp(constraint, _NULL)) {
+			column->constraints += 0;
+		} else if (!strcmp(constraint, UNIQUE)) {
+			column->constraints += 2;
+		} else if (!strcmp(constraint, PRIMARY)) {
+			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), KEY)) {
+				column->constraints += 4;
+			} else {
+				return NULL;
+			}
+		} else if (!strcmp(constraint, FOREIGN)) {
+			if (!strcmp(trim(cutTheFirstWord(column_declare_str, &column_declare_str)), KEY)) {
+				column->constraints += 8;
+			} else {
+				return NULL;
+			}
+		} else {
+			return NULL;
+		}
+	}
 
+	if (1 == 0)
+		return NULL;
 	return column;
 }
 
@@ -54,13 +96,13 @@ struct column_declare *parse_columns(char *create_query, size_t query_len, size_
 		if (create_query[i] == ',') {
 			//strcpy(columns, create_query);
 			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
-			columns[column_number] = parse_column_declare(create_query);
+			columns[column_number] = *parse_column_declare(create_query);
 			column_number++;
 		}
 		else if (create_query[i] == ')' && i == query_len - 1) {
 			//strcpy(columns, create_query);
 			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
-			columns[column_number] = parse_column_declare(create_query);
+			columns[column_number] = *parse_column_declare(create_query);
 			column_number++;
 		}
 	}
