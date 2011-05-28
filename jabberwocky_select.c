@@ -10,8 +10,6 @@
 #include "parsing_tools.h"
 
 int getDBFD(char *);
-char *cutTheFirstWord(char *, char**);
-void strup(char *str);
 
 
 int main(int argc, char *argv[]){
@@ -34,9 +32,9 @@ int main(int argc, char *argv[]){
        char *query, *firstWord;
        query = (char *)malloc(1024);
        fgets(query, 1024, stdin);
-       query[strlen(query) - 1] = '\0';
-       char * newquery;
-       char *operation = cutTheFirstWord(query, &newquery); 
+       char *trimmed_query = trim(query);
+       char *newquery;
+       char *operation = cutTheFirstWord(trimmed_query, &newquery);
        strup(operation); // Special for Alexey 
        
        int ret = 0;
@@ -88,21 +86,4 @@ int getDBFD(char *base){
     free(dbPath);
     
     return fd;
-}
-
-char *cutTheFirstWord(char *query, char **newquery){
-     int len = strcspn(query, " ");  // TODO: multiple tabs, multiple spaces
-     char *firstWord = (char *)calloc(1024, sizeof(char));
-     strncpy(firstWord, query, len);
-     (*newquery) = query + len + 1;
-     return firstWord; 
-}
-
-void strup(char *str) 
-{ 
-	char *s = str;
-	while (*s){ 
-		*s = toupper((unsigned char) *s); 
-		s++; 
-	} 
 }
