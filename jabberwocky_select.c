@@ -7,6 +7,7 @@
 
 #include "jabberwocky_func.h"
 #include "create_table.h"
+#include "parsing_tools.h"
 
 int getDBFD(char *);
 char *cutTheFirstWord(char *, char**);
