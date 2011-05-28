@@ -33,18 +33,42 @@ char *parse_table_name(char *create_query, size_t query_len, size_t table_len) {
 	return table_name;
 }
 
-char *parse_columns_declare(char *create_query, size_t query_len, size_t table_len) {
-	char *columns_declare = ""; // TODO: malloc
-	int i;
-	for (i = table_len + 1; i < query_len; i++) {
-		if (create_query[i] == ',')
-			strcpy(columns_declare, create_query);
-	}
-	return columns_declare;
+struct column_declare parse_column_declare(char *column_declare_str) {
+	struct column_declare column;
+	trim(column_declare_str);
+
+	//column.column_name = next_token(column_declare_str);
+
+	//column.type = next_token(column_declare_str);
+
+	//column.constraints = next_token(column_declare_str);
+
+	return column;
 }
 
-struct create *parse(char *create_query) {
-	struct create *result = (struct create *) malloc(sizeof(struct create));
+struct column_declare *parse_columns(char *create_query, size_t query_len, size_t table_len) {
+	struct column_declare *columns;
+	int column_number = 0;
+	int i;
+	for (i = table_len + 1; i < query_len; i++) {
+		if (create_query[i] == ',') {
+			//strcpy(columns, create_query);
+			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
+			columns[column_number] = parse_column_declare(create_query);
+			column_number++;
+		}
+		else if (create_query[i] == ')' && i == query_len - 1) {
+			//strcpy(columns, create_query);
+			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
+			columns[column_number] = parse_column_declare(create_query);
+			column_number++;
+		}
+	}
+	return columns;
+}
+
+struct table *parse(char *create_query) {
+	struct table *result = (struct table *) malloc(sizeof(struct table));
 	trim(create_query);
 	size_t query_len = strlen(create_query);
 	size_t table_len = strcspn(create_query, "(");
@@ -55,12 +79,11 @@ struct create *parse(char *create_query) {
 		return NULL;
 	}
 
-	char *columns_declare = parse_columns_declare(create_query, query_len, table_len);
-	if (columns_declare == NULL) {
+	result->columns = parse_columns(create_query, query_len, table_len);
+	if (result->columns == NULL) {
 		free(result);
 		return NULL;
 	}
-	// result->query = result->table_name + '(' + columns_declare + ')';
 
 	return result;
 }
@@ -75,10 +98,10 @@ int write_table_structure(int fd, char *query) {
 }
 
 int create_table(int fd, char *create_query) {
-	struct create *result = parse(create_query);
+	struct table *result = parse(create_query);
 	if (result == NULL)
 		return -1;
 	create_table_data_file(result->table_name);
-	write_table_structure(fd, result->query);
+	//write_table_structure(fd, result->query);
 	return 0;
 }

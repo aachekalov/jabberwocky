@@ -1,14 +1,22 @@
-struct create {
+struct column_declare {
+	char *column_name;
+	unsigned char type;
+	char **constraints;
+};
+
+struct table {
 	char *table_name;
-	char *query;
+	unsigned char column_count;
+	struct column_declare *columns;
 };
 
 int check_table_name_length(size_t query_len, size_t table_len);
 char *parse_table_name(char *create_query, size_t query_len, size_t table_len);
 
-char *parse_columns_declare(char *create_query, size_t query_len, size_t table_len);
+struct column_declare parse_column_declare(char *column_declare_str);
+struct column_declare *parse_columns(char *create_query, size_t query_len, size_t table_len);
 
-struct create *parse(char *create_query);
+struct table *parse(char *create_query);
 
 int create_table_data_file(char *table_name);
 
