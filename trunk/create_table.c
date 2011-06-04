@@ -4,6 +4,7 @@
 
 #include "create_table.h"
 #include "parsing_tools.h"
+#include "jabberwocky_io.h"
 
 int check_table_name_length(size_t query_len, size_t table_len) {
 	if (table_len == 0) {
@@ -81,6 +82,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 			trim(column_declare_str);
 			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), KEY)) {
 				column->constraints += 8;
+				char *foreign_table = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
 			} else {
 				return NULL;
 			}
@@ -141,8 +143,9 @@ int create_table_data_file(char *table_name) {
 	return 0;
 }
 
-int write_table_structure(int fd, char *query) {
-	printf("DEBUG: table structure:%s\n", query);
+int write_table_structure(int fd, struct table *new_table) {
+	//printf("DEBUG: table structure:%s\n", query);
+	write(fd, new_table);
 	return 0;
 }
 
@@ -151,6 +154,6 @@ int create_table(int fd, char *create_query) {
 	if (result == NULL)
 		return -1;
 	create_table_data_file(result->table_name);
-	//write_table_structure(fd, result->query);
+	write_table_structure(fd, result);
 	return 0;
 }
