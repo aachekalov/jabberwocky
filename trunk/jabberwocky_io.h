@@ -13,8 +13,8 @@ struct column_declare {
 	struct column_declare *foreign_key;
 };
 
-int write (int fd, struct table newTable);
+int writeTable (int fd, struct table newTable);
 
-int read (int fd, struct table *tableList);
+int readTable (int fd, struct table *tableList);
 
 int getFieldIndex(int fd, char* tableName, char* fieldName);
