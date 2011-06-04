@@ -29,7 +29,7 @@ char *parse_table_name(char *create_query, size_t query_len, size_t table_len) {
 	strncpy(table_name, create_query, table_len);
 	table_name = trim(table_name);
 	if (check_identifier_name(table_name)) {
-		printf("'%s' check_identifier_name error\n", table_name);
+		printf("'%s' table_name check_identifier_name error\n", table_name);
 		free(table_name);
 		return NULL;
 	}
@@ -42,7 +42,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 
 	column->column_name = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
 	if (check_identifier_name(column->column_name)) {
-		printf("'%s' check_identifier_name error\n", column->column_name);
+		printf("'%s' column_name check_identifier_name error\n", column->column_name);
 		return NULL;
 	}
 
