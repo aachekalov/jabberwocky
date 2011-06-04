@@ -21,7 +21,7 @@ jabberwocky_select.o: jabberwocky_select.c
 jabberwocky_func.o: jabberwocky_func.c
 	gcc -c $^
 
-create_table.o: create_table.c jabberwocky_io.c
+create_table.o: create_table.c
 	gcc -c $^
 
 parsing_tools.o: parsing_tools.c
