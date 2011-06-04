@@ -29,6 +29,11 @@ int main(int argc, char *argv[]){
     //TODO: вывалить в массив структур
     struct table *tableList;
     readTable(fd, tableList);
+    int i;
+    //printf("%d - %d", sizeof(tableList), sizeof(struct table));
+    for (i = 0; i < sizeof(tableList)/sizeof(struct table); i++) {
+		printf("%s - %d", tableList[i].table_name, tableList[i].column_count);
+	}
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;

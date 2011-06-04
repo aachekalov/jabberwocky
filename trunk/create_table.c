@@ -61,8 +61,9 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	}
 
 	column_declare_str = trim(column_declare_str);
-	char *constraint;
-	while ((constraint = cutTheFirstWord(column_declare_str, &column_declare_str)) != "") {
+	char *constraint = cutTheFirstWord(column_declare_str, &column_declare_str);
+	while (strcmp(constraint, "")) {
+		printf("##'%s'", constraint);
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
 			trim(column_declare_str);
@@ -97,26 +98,32 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 			printf("constraint '%s' no allowed\n", constraint);
 			return NULL;
 		}
+		constraint = cutTheFirstWord(column_declare_str, &column_declare_str);
 		trim(column_declare_str);
 	}
 	return column;
 }
 
-struct column_declare *parse_columns(char *create_query, size_t query_len, size_t table_len) {
+struct column_declare *parse_columns(char *create_query, size_t query_len) {
 	struct column_declare *columns = NULL;
 	int column_number = 0;
 	int i;
-	for (i = table_len + 2; i < query_len; i++) {
+	size_t column_declare_len = strcspn(create_query, ",)");
+	for (i = 0; i < query_len; i++) {
 		if (create_query[i] == ',') {
+			create_query[i] = ' ';
 			//strcpy(columns, create_query);
 			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
 			columns[column_number] = *parse_column_declare(create_query);
 			column_number++;
 		}
-		else if (create_query[i] == ')' && i == query_len - 1) {
+		else if (create_query[i] == ')'/* && i == query_len - 1*/) {
 			//strcpy(columns, create_query);
+			create_query[i] = '\0';
+			//printf("##%s\n", create_query);
 			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
 			columns[column_number] = *parse_column_declare(create_query);
+			printf("%s - %d\n", columns[column_number].column_name, columns[column_number].type);
 			column_number++;
 		}
 	}
@@ -137,7 +144,8 @@ struct table *parse(char *create_query) {
 		return NULL;
 	}
 
-	result->columns = parse_columns(create_query, query_len, table_len);
+	create_query += table_len + 1;
+	result->columns = parse_columns(create_query, query_len);
 	if (result->columns == NULL) {
 		printf("parse_columns error\n");
 		free(result);
@@ -153,7 +161,7 @@ int create_table_data_file(char *table_name) {
 
 int write_table_structure(int fd, struct table *new_table) {
 	//printf("DEBUG: table structure:%s\n", query);
-	write(fd, new_table);
+	writeTable(fd, *new_table);
 	return 0;
 }
 
