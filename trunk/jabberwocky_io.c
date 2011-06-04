@@ -181,7 +181,9 @@ int readTable (int fd, struct table *tableList){
 					perror("Reading error");
 					return -1;
 				}
-				setForeignKey(foreignIndex, tableList, a);
+				if (setForeignKey(foreignIndex, tableList, a, i) < 0){
+               printf("Wrong data: non-existent field");
+               return -1;
 			}
 			
 		}
@@ -189,7 +191,21 @@ int readTable (int fd, struct table *tableList){
 	}
 }
 
-int setForeignKey(int foreignIndex, struct table *tableList, int *a){
-	
-	for 
+int setForeignKey(int foreignIndex, struct table *tableList, int *a, int fi){
+	int i;
+	for (i = 0; i < sizeof(a)/sizeof(int); i++)
+     if (a[i] == foreignIndex)
+       break;
+   i++;
+   int j, k;
+   for (j = 0; j < sizeof(tableList)/sizeof(struct table); j++)
+     if (i > tableList[j].column_count)
+       i -= tableList[j].column_count;
+     else
+       if(a[i-1] == tableList[j].columns[i-1]){
+         tableList[sizeof(tableList)/sizeof(struct table) - 1].columns[fi].foreign_table = &tableList[j];
+         tableList[sizeof(tableList)/sizeof(struct table) - 1].columns[fi].foreign_key = &tableList[j].columns[i-1];
+       }else
+         return -1;
+   return 0;     
 }
