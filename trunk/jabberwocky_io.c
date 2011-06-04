@@ -7,7 +7,7 @@
 
 #include "jabberwocky_io.h"
 
-int lastIndex;
+int lastIndex = 0;
 
 int writeTable (int fd, struct table newTable){
 	int len = strlen(newTable.table_name);
@@ -15,7 +15,7 @@ int writeTable (int fd, struct table newTable){
         perror("Writing error");
         return -1;
     }
-	if(write(fd, newTable.table_name, strlen(newTable.table_name) + 1) != strlen(newTable.table_name) + 1){
+	if(write(fd, newTable.table_name, len) != len){
         perror("Writing error");
         return -1;
     }
@@ -35,7 +35,7 @@ int writeTable (int fd, struct table newTable){
 			perror("Writing error");
 			return -1;
 		}
-		if(write(fd, newTable.columns[i].column_name, strlen(newTable.columns[i].column_name) + 1) != strlen(newTable.columns[i].column_name) + 1){
+		if(write(fd, newTable.columns[i].column_name, strlen(newTable.columns[i].column_name)) != strlen(newTable.columns[i].column_name)){
 			perror("Writing error");
 			return -1;
 		}
@@ -128,7 +128,8 @@ int readTable (int fd, struct table *tableList){
         return -1;
     if (st.st_size == 0)
 		return -1;
-	int k = 1, i;
+	int k = 1, l = 0, i;
+	int *a = 0;
 	while(!EOF){
 		tableList = (struct table *)realloc(tableList, k * sizeof(struct table));
 		int len;
@@ -146,13 +147,16 @@ int readTable (int fd, struct table *tableList){
 			perror("Reading error");
 			return -1;
 		}
+		qcol = tableList[k-1].column_count;
 		tableList[k-1].columns = (struct column_declare *)calloc(qcol, sizeof(struct column_declare));
+		a = (int *)realloc(a, (l + qcol) * sizeof(int));
 		k++;	
 		for(i = 0; i < qcol; i++){
 			if(read(fd, &lastIndex, sizeof(int)) != sizeof(int)){
 				perror("Reading error");
 				return -1;
 			}
+			a[l + i] = lastIndex;
 			int clen;
 			if(read(fd, &clen, sizeof(int)) != sizeof(int)){
 				perror("Reading error");
@@ -171,7 +175,21 @@ int readTable (int fd, struct table *tableList){
 				perror("Reading error");
 				return -1;
 			}
+			if (tableList[k-1].columns[i].constraints > 8){
+				int foreignIndex;
+				if(read(fd, &foreignIndex, sizeof(int)) != sizeof(int)){
+					perror("Reading error");
+					return -1;
+				}
+				setForeignKey(foreignIndex, tableList, a);
+			}
+			
 		}
+		l += qcol;
 	}
 }
 
+int setForeignKey(int foreignIndex, struct table *tableList, int *a){
+	
+	for 
+}
