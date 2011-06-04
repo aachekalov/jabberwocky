@@ -8,6 +8,7 @@
 #include "jabberwocky_func.h"
 #include "create_table.h"
 #include "parsing_tools.h"
+#include "jabberwocky_io.h"
 
 int getDBFD(char *);
 
@@ -26,7 +27,8 @@ int main(int argc, char *argv[]){
     }
     
     //TODO: вывалить в массив структур
-    
+    struct table *tableList;
+    readTable(fd, tableList);
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;
@@ -41,7 +43,7 @@ int main(int argc, char *argv[]){
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ncreatetable works with \"%s\"\n", newquery);
-             ret = create_table(fd, newquery);
+             ret = create_table(fd, newquery, tableList);
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ninsertinto works with \"%s\"\n", newquery);//ret = insert_into(fd, query);  
