@@ -149,7 +149,7 @@ int write_table_structure(int fd, struct table *new_table) {
 	return 0;
 }
 
-int create_table(int fd, char *create_query) {
+int create_table(int fd, char *create_query, struct table * listTable) {
 	struct table *result = parse(create_query);
 	if (result == NULL)
 		return -1;
