@@ -9,6 +9,7 @@
 #include "create_table.h"
 #include "parsing_tools.h"
 #include "jabberwocky_io.h"
+#include "insert_into.h"
 
 int getDBFD(char *);
 
@@ -26,42 +27,38 @@ int main(int argc, char *argv[]){
        exit(-1);         
     }
     
-    //TODO: вывалить в массив структур
-    struct table *tableList;
+    struct table *tableList = 0;
     readTable(fd, tableList);
-    int i;
-    //printf("%d - %d", sizeof(tableList), sizeof(struct table));
-    for (i = 0; i < sizeof(tableList)/sizeof(struct table); i++) {
-		printf("%s - %d", tableList[i].table_name, tableList[i].column_count);
-	}
+    
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;
        query = (char *)malloc(1024);
        fgets(query, 1024, stdin);
-       char *trimmed_query = trim(query);
-       char *newquery;
-       char *operation = cutTheFirstWord(trimmed_query, &newquery);
+       char *newquery = trim(query);
+       char *operation = cutTheFirstWord(newquery, &newquery);
        strup(operation); // Special for Alexey 
+       newquery = trim(newquery);
        
        int ret = 0;
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ncreatetable works with \"%s\"\n", newquery);
-             ret = create_table(fd, newquery, tableList);
+             ret = create_table(fd, trim(newquery), tableList);
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ninsertinto works with \"%s\"\n", newquery);//ret = insert_into(fd, query);  
+             printf("\ninsertinto works with \"%s\"\n", newquery);
+             ret = insert_into(fd, trim(newquery), tableList);  
        }else if (!strcmp(operation, "UPDATE")){
-             printf("\nupdate works with \"%s\"\n", newquery);//ret = update(fd, query); 
+             printf("\nupdate works with \"%s\"\n", newquery);//ret = update(fd, newquery); 
        }else if (!strcmp(operation, "DROP")){
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ndroptable works with \"%s\"\n", newquery);//ret = drop_table(fd, query);
+             printf("\ndroptable works with \"%s\"\n", newquery);//ret = drop_table(fd, trim(newquery));
        }else if (!strcmp(operation, "DELETE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, query);      
+             printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, trim(newquery));      
        }else if (!strcmp(operation, "SELECT")){
-             printf("\nselect works with \"%s\"\n", newquery);//ret = select(fd, query);
+             printf("\nselect works with \"%s\"\n", newquery);//ret = select(fd, newquery);
        }else if (!strcmp(operation, "QUIT") || !strcmp(operation, "Q") || 
 				 !strcmp(operation, "EXIT") || !strcmp(operation, "E")){
 		     // TODO: free memory

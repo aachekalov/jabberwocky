@@ -12,7 +12,7 @@ jwdropdb: jabberwocky_drop.o jabberwocky_func.o
 jabberwocky_drop.o: jabberwocky_drop.c
 	gcc -c $^
 
-jwselectdb: jabberwocky_select.o jabberwocky_func.o jabberwocky_func.o create_table.o parsing_tools.o jabberwocky_io.o
+jwselectdb: jabberwocky_select.o jabberwocky_func.o jabberwocky_func.o create_table.o parsing_tools.o insert_into.o jabberwocky_io.o
 	gcc -o $@ $^
 
 jabberwocky_select.o: jabberwocky_select.c
@@ -28,6 +28,9 @@ parsing_tools.o: parsing_tools.c
 	gcc -c $^
 
 jabberwocky_io.o: jabberwocky_io.c
+	gcc -c $^
+
+insert_into.o: insert_into.c
 	gcc -c $^
 
 .PHONY : create_work_dir clean
