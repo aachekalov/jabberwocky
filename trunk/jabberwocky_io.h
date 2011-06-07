@@ -15,7 +15,7 @@ struct column_declare {
 
 int writeTable (int fd, struct table newTable);
 
-int readTable (int fd, struct table *tableList);
+int readTables (int fd, struct table *tableList);
 
 int getFieldIndex(int fd, char* tableName, char* fieldName);
 

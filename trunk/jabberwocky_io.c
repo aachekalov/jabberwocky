@@ -15,38 +15,46 @@ int writeTable (int fd, struct table newTable){
         perror("Writing error");
         return -1;
     }
-	if(write(fd, newTable.table_name, len) != len){
+    if(write(fd, newTable.table_name, len) != len){
         perror("Writing error");
         return -1;
     }
+    //printf("Write tname");
     if(write(fd, &newTable.column_count, sizeof(unsigned char)) != sizeof(unsigned char)){
         perror("Writing error");
         return -1;
     }
+    printf("Write qcol = %d", newTable.column_count);
     int i;
     for(i = 0; i < newTable.column_count; i++){
 		lastIndex++;
+		printf("Write end");
 		if(write(fd, &lastIndex, sizeof(int)) != sizeof(int)){
 			perror("Writing error");
 			return -1;
 		}
+		//printf("Write end");
 		len = strlen(newTable.columns[i].column_name);
 		if(write(fd, &len, sizeof(int)) != sizeof(int)){
 			perror("Writing error");
 			return -1;
 		}
+		//printf("Write end");
 		if(write(fd, newTable.columns[i].column_name, strlen(newTable.columns[i].column_name)) != strlen(newTable.columns[i].column_name)){
 			perror("Writing error");
 			return -1;
 		}
+		//printf("Write end");
 		if(write(fd, &newTable.columns[i].type, sizeof(unsigned char)) != sizeof(unsigned char)){
 			perror("Writing error");
 			return -1;
 		}
+		//printf("Write end");
 		if(write(fd, &newTable.columns[i].constraints, sizeof(unsigned char)) != sizeof(unsigned char)){
 			perror("Writing error");
 			return -1;
 		}
+		//printf("Write end");
 		if (newTable.columns[i].constraints > 8){
 			int index = getFieldIndex(fd, newTable.table_name, newTable.columns[i].column_name);
 			if(write(fd, &index, sizeof(int)) != sizeof(int)){
@@ -55,10 +63,12 @@ int writeTable (int fd, struct table newTable){
 			}
 		}
 	}
-    if(write(fd, "\r\n", 2) != 2){
+	//printf("Write cols");
+    if(write(fd, "\n", 1) != 1){
 			perror("Writing error");
 			return -1;
 	}
+	//printf("Write end");
 	return 0;
 }
 
@@ -121,7 +131,7 @@ int getFieldIndex(int fd, char* tableName, char* fieldName){
 	return index;	
 }
 
-int readTable (int fd, struct table *tableList){
+int readTables (int fd, struct table *tableList){
 	
 	struct stat st;
 	if(fstat(fd,&st) < 0)    
@@ -129,58 +139,79 @@ int readTable (int fd, struct table *tableList){
     if (st.st_size == 0)
 		return -1;
 	int k = 1, l = 0, i;
+	int readen = 0;
 	int *a = 0;
-	while(!EOF){
+	printf("Before eof");
+	while(st.st_size > readen + 1){
+		printf ("\nsize = %d, readen = %d\n", st.st_size, readen);
+		printf("After eof");
 		tableList = (struct table *)realloc(tableList, k * sizeof(struct table));
-		int len;
-		if(read(fd, &len, sizeof(int)) != sizeof(int)){
-			perror("Reading error");
+		int len, r;
+		r = read(fd, &len, sizeof(int));
+		if(r != sizeof(int)){
+			perror("Reading error len");
 			return -1;
 		}
-		tableList[k-1].table_name = (char *)malloc(len * sizeof(char));
-		if((read(fd, tableList[k-1].table_name, len)) != strlen(tableList[k-1].table_name)){
-			perror("Reading error");
+		printf("\nlen = %d, r = %d\n", len, r);
+		readen += r;
+		printf("Read len\n");
+
+		tableList[k-1].table_name = (char *)calloc((len+1), sizeof(char));
+		r = read(fd, tableList[k-1].table_name, len);
+		if(r != len){
+			perror("Reading error table_name");
 			return -1;
 		}
+		readen += r;
+		printf("Read name = %s\n", tableList[k-1].table_name);
+
 		unsigned char qcol;
-		if(read(fd, &tableList[k-1].column_count, sizeof(unsigned char)) != sizeof(unsigned char)){
+		if((r = read(fd, &tableList[k-1].column_count, sizeof(unsigned char))) != sizeof(unsigned char)){
 			perror("Reading error");
 			return -1;
 		}
+		printf("Read qcol = %d\n", tableList[k-1].column_count);
 		qcol = tableList[k-1].column_count;
 		tableList[k-1].columns = (struct column_declare *)calloc(qcol, sizeof(struct column_declare));
 		a = (int *)realloc(a, (l + qcol) * sizeof(int));
-		k++;	
+		k++;
+		printf("Read cols\n");	
 		for(i = 0; i < qcol; i++){
-			if(read(fd, &lastIndex, sizeof(int)) != sizeof(int)){
+			if((r = read(fd, &lastIndex, sizeof(int))) != sizeof(int)){
 				perror("Reading error");
 				return -1;
 			}
+			readen += r;
 			a[l + i] = lastIndex;
 			int clen;
-			if(read(fd, &clen, sizeof(int)) != sizeof(int)){
+			if((r = read(fd, &clen, sizeof(int))) != sizeof(int)){
 				perror("Reading error");
 				return -1;
 			}
+			readen += r;
 			tableList[k-1].columns[i].column_name = (char *)malloc(clen * sizeof(char));
-			if(read(fd, tableList[k-1].columns[i].column_name, clen) != clen){
+			if((r = read(fd, tableList[k-1].columns[i].column_name, clen)) != clen){
 				perror("Reading error");
 				return -1;
 			}
-			if(read(fd, &tableList[k-1].columns[i].type, sizeof(char)) != sizeof(char)){
+			readen += r;
+			if((r = read(fd, &tableList[k-1].columns[i].type, sizeof(char))) != sizeof(char)){
 				perror("Reading error");
 				return -1;
 			}
-			if(read(fd, &tableList[k-1].columns[i].constraints, sizeof(char)) != sizeof(char)){
+			readen += r;
+			if((r = read(fd, &tableList[k-1].columns[i].constraints, sizeof(char))) != sizeof(char)){
 				perror("Reading error");
 				return -1;
 			}
+			readen += r;
 			if (tableList[k-1].columns[i].constraints > 8){
 				int foreignIndex;
-				if(read(fd, &foreignIndex, sizeof(int)) != sizeof(int)){
+				if((r = read(fd, &foreignIndex, sizeof(int))) != sizeof(int)){
 					perror("Reading error");
 					return -1;
 				}
+				readen += r;
 				if (setForeignKey(foreignIndex, tableList, k, a, l + qcol, k-1, i) < 0){
 					printf("Wrong data: non-existent field");
 					return -1;
@@ -189,7 +220,11 @@ int readTable (int fd, struct table *tableList){
 			}
 		}
 		l += qcol;
+		char buf[2];
+		r = read (fd, buf, 1);
+		readen += r;
 	}
+	printf("Read end");
 	return k-1;
 }
 
