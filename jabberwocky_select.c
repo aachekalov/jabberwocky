@@ -28,7 +28,18 @@ int main(int argc, char *argv[]){
     }
     
     struct table *tableList = 0;
-    readTable(fd, tableList);
+    int q = readTable(fd, tableList);
+    printf("q = %d\n", q);
+    if (q < 0)
+		printf("File is empty\n");
+    int i, j;
+    for (i = 0; i < q; i++){
+		printf("\ntableName = %s, qcol = %d, ", tableList[i].table_name, tableList[i].column_count);
+		for (j = 0; j < tableList[i].column_count; j++){
+			("colName = %s, colType = %c", tableList[i].columns[j].column_name, tableList[i].columns[j].type);
+		}
+	}
+    
     
     while(1){
        printf("%s > ", dbName);
@@ -48,7 +59,7 @@ int main(int argc, char *argv[]){
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ninsertinto works with \"%s\"\n", newquery);
-             ret = insert_into(fd, trim(newquery), tableList);  
+             ret = insert_into(trim(newquery), tableList);  
        }else if (!strcmp(operation, "UPDATE")){
              printf("\nupdate works with \"%s\"\n", newquery);//ret = update(fd, newquery); 
        }else if (!strcmp(operation, "DROP")){
