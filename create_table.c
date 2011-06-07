@@ -104,27 +104,31 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	return column;
 }
 
-struct column_declare *parse_columns(char *create_query, size_t query_len) {
-	struct column_declare *columns = NULL;
-	int column_number = 0;
+int parse_columns(struct table *result, char *create_query, size_t query_len) {
+	result->columns = NULL;
+	result->column_count = 0;
 	int i;
-	size_t column_declare_len = strcspn(create_query, ",)");
+	//size_t column_declare_len = strcspn(create_query, ",)");
 	for (i = 0; i < query_len; i++) {
 		if (create_query[i] == ',') {
-			create_query[i] = ' ';
-			//strcpy(columns, create_query);
-			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
+			// create_query[i] = ' ';
+			strncpy(result->columns, create_query, i);
+			result->columns = (struct column_declare *) realloc(
+				result->columns, (result->column_count + 1) * sizeof(struct column_declare)
+			);
 			columns[column_number] = *parse_column_declare(create_query);
-			column_number++;
+			result->column_count++;
 		}
 		else if (create_query[i] == ')'/* && i == query_len - 1*/) {
 			//strcpy(columns, create_query);
 			create_query[i] = '\0';
 			//printf("##%s\n", create_query);
-			columns = (struct column_declare *) realloc(columns, (column_number + 1) * sizeof(struct column_declare));
+			result->columns = (struct column_declare *) realloc(
+				result->columns, (result->column_count + 1) * sizeof(struct column_declare)
+			);
 			columns[column_number] = *parse_column_declare(create_query);
-			printf("%s - %d\n", columns[column_number].column_name, columns[column_number].type);
-			column_number++;
+			//printf("%s - %d\n", columns[column_number].column_name, columns[column_number].type);
+			result->column_count++;
 		}
 	}
 	return columns;
@@ -132,7 +136,7 @@ struct column_declare *parse_columns(char *create_query, size_t query_len) {
 
 struct table *parse(char *create_query) {
 	struct table *result = (struct table *) malloc(sizeof(struct table));
-	create_query = trim(create_query);
+	//create_query = trim(create_query);
 	size_t query_len = strlen(create_query);
 	size_t table_len = strcspn(create_query, "(");
 	//printf("\n\n%s#%d#%d\n\n", create_query, query_len, table_len);
@@ -145,7 +149,8 @@ struct table *parse(char *create_query) {
 	}
 
 	create_query += table_len + 1;
-	result->columns = parse_columns(create_query, query_len);
+	query_len -= table_len + 1;
+	result->columns = parse_columns(result, create_query, query_len);
 	if (result->columns == NULL) {
 		printf("parse_columns error\n");
 		free(result);
