@@ -28,18 +28,7 @@ int main(int argc, char *argv[]){
     }
     
     struct table *tableList = 0;
-    int q = readTable(fd, tableList);
-    printf("q = %d\n", q);
-    if (q < 0)
-		printf("File is empty\n");
-    int i, j;
-    for (i = 0; i < q; i++){
-		printf("\ntableName = %s, qcol = %d, ", tableList[i].table_name, tableList[i].column_count);
-		for (j = 0; j < tableList[i].column_count; j++){
-			("colName = %s, colType = %c", tableList[i].columns[j].column_name, tableList[i].columns[j].type);
-		}
-	}
-    
+    int q = readTables(fd, tableList);    
     
     while(1){
        printf("%s > ", dbName);
