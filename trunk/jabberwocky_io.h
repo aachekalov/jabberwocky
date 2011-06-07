@@ -18,3 +18,5 @@ int writeTable (int fd, struct table newTable);
 int readTable (int fd, struct table *tableList);
 
 int getFieldIndex(int fd, char* tableName, char* fieldName);
+
+int setForeignKey(int foreignIndex, struct table *tableList, int structSize, int *a, int aSize, int ti, int fi);
