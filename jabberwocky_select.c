@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     }
     
     struct table *tableList = 0;
-    int q = readTables(fd, tableList);    
+    //int q = readTables(fd, tableList);    
     
     while(1){
        printf("%s > ", dbName);
