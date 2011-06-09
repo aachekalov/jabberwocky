@@ -1,8 +1,10 @@
+#include "jabberwocky_io.h"
+
 int check_table_name_length(size_t query_len, size_t table_len);
 char *parse_table_name(char *create_query, size_t query_len, size_t table_len);
 
 struct column_declare *parse_column_declare(char *column_declare_str);
-struct column_declare *parse_columns(char *create_query, size_t query_len);
+int parse_columns(struct table *result, char *create_query, size_t query_len);
 
 struct table *parse(char *create_query);
 

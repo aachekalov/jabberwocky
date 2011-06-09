@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "create_table.h"
 #include "parsing_tools.h"
-#include "jabberwocky_io.h"
+//#include "jabberwocky_io.h"
+#include "create_table.h"
 
 int check_table_name_length(size_t query_len, size_t table_len) {
 	if (table_len == 0) {
@@ -108,30 +108,37 @@ int parse_columns(struct table *result, char *create_query, size_t query_len) {
 	result->columns = NULL;
 	result->column_count = 0;
 	int i;
-	//size_t column_declare_len = strcspn(create_query, ",)");
+	int j = 0;
+	char *columns;
 	for (i = 0; i < query_len; i++) {
 		if (create_query[i] == ',') {
-			// create_query[i] = ' ';
-			strncpy(result->columns, create_query, i);
+			j = i;
+			columns = (char *) calloc(i - j, sizeof(char));
+			strncpy(columns, create_query + j + 1, i - j - 1);
 			result->columns = (struct column_declare *) realloc(
-				result->columns, (result->column_count + 1) * sizeof(struct column_declare)
+				result->columns,
+				(result->column_count + 1) * sizeof(struct column_declare)
 			);
-			columns[column_number] = *parse_column_declare(create_query);
+			result->columns[result->column_count] = *parse_column_declare(columns);
 			result->column_count++;
+			free(columns);
 		}
 		else if (create_query[i] == ')'/* && i == query_len - 1*/) {
-			//strcpy(columns, create_query);
-			create_query[i] = '\0';
-			//printf("##%s\n", create_query);
+			j = i;
+			columns = (char *) calloc(i - j, sizeof(char));
+			strncpy(columns, create_query + j + 1, i - j - 1);
+			//create_query[i] = '\0';
 			result->columns = (struct column_declare *) realloc(
-				result->columns, (result->column_count + 1) * sizeof(struct column_declare)
+				result->columns,
+				(result->column_count + 1) * sizeof(struct column_declare)
 			);
-			columns[column_number] = *parse_column_declare(create_query);
+			result->columns[result->column_count] = *parse_column_declare(create_query);
 			//printf("%s - %d\n", columns[column_number].column_name, columns[column_number].type);
 			result->column_count++;
+			free(columns);
 		}
 	}
-	return columns;
+	return 0;
 }
 
 struct table *parse(char *create_query) {
@@ -150,8 +157,8 @@ struct table *parse(char *create_query) {
 
 	create_query += table_len + 1;
 	query_len -= table_len + 1;
-	result->columns = parse_columns(result, create_query, query_len);
-	if (result->columns == NULL) {
+
+	if (parse_columns(result, create_query, query_len) == -1) {
 		printf("parse_columns error\n");
 		free(result);
 		return NULL;
@@ -161,6 +168,11 @@ struct table *parse(char *create_query) {
 }
 
 int create_table_data_file(char *table_name) {
+	int fd = open(table_name, O_WRONLY | O_CREAT | O_TRUNC, 0744);
+    if (fd < 0){
+       perror("\nError in creating database");
+       exit(-1);  
+    }
 	return 0;
 }
 

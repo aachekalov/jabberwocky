@@ -8,7 +8,7 @@
 #include "jabberwocky_func.h"
 #include "create_table.h"
 #include "parsing_tools.h"
-#include "jabberwocky_io.h"
+//#include "jabberwocky_io.h"
 #include "insert_into.h"
 
 int getDBFD(char *);
