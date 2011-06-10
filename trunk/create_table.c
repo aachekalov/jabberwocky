@@ -36,18 +36,30 @@ char *parse_table_name(char *create_query, size_t table_len) {
 }
 
 struct column_declare *parse_column_declare(char *column_declare_str) {
-	printf("DEBUG: the column declare '%s'\n", column_declare_str);
-
-	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
-
-	/*column->column_name = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
-	if (check_identifier_name(column->column_name)) {
-		printf("'%s' column_name check_identifier_name error\n", column->column_name);
+	if (!(*column_declare_str)) {
+		printf("PARSE ERROR: empty column declare\n");
 		return NULL;
 	}
 
-	trim(column_declare_str);
-	char *type = cutTheFirstWord(column_declare_str, &column_declare_str);
+	printf("DEBUG: the column declare '%s'\n", column_declare_str);
+
+	char *next_token = column_declare_str;
+
+	char *column_name = cutTheFirstWord(next_token, &next_token);
+	if (check_identifier_name(column_name)) {
+		printf("CALL: check_identifier_name\n");
+		return NULL;
+	}
+	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
+	column->column_name = (char *) calloc(strlen(column_name) + 1, sizeof(char));
+	strcpy(column->column_name, column_name);
+	printf("DEBUG: column name '%s'\n", column->column_name);
+
+	char *type = trim(cutTheFirstWord(next_token, &next_token));
+	if (!(*type)) {
+		printf("PARSE ERROR: column type not found\n");
+		return NULL;
+	}
 	strup(type);
 	if (!strcmp(type, INT)) {
 		column->type = 1;
@@ -56,51 +68,71 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	} else if (!strcmp(type, CHAR)) {
 		column->type = 4;
 	} else {
-		printf("type '%s' no allowed\n", type);
+		printf("PARSE ERROR: type '%s' not allowed\n", type);
+		free(column->column_name);
+		free(column);
 		return NULL;
 	}
+	printf("DEBUG: column type %d\n", column->type);
 
-	column_declare_str = trim(column_declare_str);
-	char *constraint = cutTheFirstWord(column_declare_str, &column_declare_str);
-	while (strcmp(constraint, "")) {
-		printf("##'%s'", constraint);
+	char *constraint = trim(cutTheFirstWord(next_token, &next_token));
+	column->constraints = 0;
+	while (*constraint) {
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
-			trim(column_declare_str);
-			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), _NULL)) {
+			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), _NULL)) {
 				column->constraints += 1;
 			} else {
-				printf("NULL sould be after NOT\n");
+				printf("PARSE ERROR: NULL must be after NOT\n");
+				free(column->column_name);
+				free(column);
 				return NULL;
 			}
 		} else if (!strcmp(constraint, _NULL)) {
-			column->constraints += 0;
+			// nothing
 		} else if (!strcmp(constraint, UNIQUE)) {
 			column->constraints += 2;
 		} else if (!strcmp(constraint, PRIMARY)) {
-			trim(column_declare_str);
-			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), KEY)) {
+			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), KEY)) {
 				column->constraints += 4;
 			} else {
-				printf("KEY is missing\n");
+				printf("PARSE ERROR: KEY must be after PRIMARY\n");
+				free(column->column_name);
+				free(column);
 				return NULL;
 			}
 		} else if (!strcmp(constraint, FOREIGN)) {
-			trim(column_declare_str);
-			if (!strcmp(cutTheFirstWord(column_declare_str, &column_declare_str), KEY)) {
+			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), KEY)) {
 				column->constraints += 8;
-				char *foreign_table = trim(cutTheFirstWord(column_declare_str, &column_declare_str));
+				char *foreign = trim(cutTheFirstWord(next_token, &next_token));
+				size_t foreign_len = strlen(foreign);
+				size_t table_len = strcspn(foreign, "(");
+				if (table_len == foreign_len) {
+					printf("PARSE ERROR: foreign key not found\n");
+					free(column->column_name);
+					free(column);
+					return NULL;
+				}
+				if (foreign[foreign_len - 1] == ')') {
+					foreign[--foreign_len] = '\0';
+				} else {
+					printf("PARSE ERROR: check ) at the end of foreign key constraint\n");
+					free(column->column_name);
+					free(column);
+					return NULL;
+				}
 			} else {
-				printf("KEY is missing\n");
+				printf("PARSE ERROR: KEY must be after FOREIGN\n");
+				free(column->column_name);
+				free(column);
 				return NULL;
 			}
 		} else {
-			printf("constraint '%s' no allowed\n", constraint);
+			printf("constraint '%s' nod allowed\n", constraint);
 			return NULL;
 		}
-		constraint = cutTheFirstWord(column_declare_str, &column_declare_str);
-		trim(column_declare_str);
-	}*/
+		constraint = trim(cutTheFirstWord(next_token, &next_token));
+	}
 	return column;
 }
 
@@ -175,7 +207,7 @@ struct table *parse(char *create_query) {
 		free(result);
 		return NULL;
 	}
-	printf("DEBUG: table_name '%s'\n", result->table_name);
+	printf("DEBUG: table name '%s'\n", result->table_name);
 
 	create_query += table_len + 1;
 	if (parse_columns(result, trim(create_query))) {
@@ -202,7 +234,7 @@ int write_table_structure(int fd, struct table *new_table) {
 	return 0;
 }
 
-int create_table(int fd, char *create_query, struct table *table_list) {
+int create_table(int fd, char *db_path, char *create_query, struct table *table_list) {
 	printf("DEBUG: initial create query '%s'\n", create_query);
 	struct table *result = parse(create_query);
 	if (!result) {
@@ -212,7 +244,7 @@ int create_table(int fd, char *create_query, struct table *table_list) {
 	// TODO: check table not exists;
 	// TODO: chech constraints (foreign key, ...)
 	//write_table_structure(fd, result);
-	//create_table_data_file(result->table_name);
+	create_table_data_file(result->table_name);
 	printf("CREATE TABLE: SUCCESS\n");
 	return 0;
 }
