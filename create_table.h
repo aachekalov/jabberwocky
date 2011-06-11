@@ -17,4 +17,4 @@ int write_table_structure(int fd, struct table *new_table, struct table **table_
  * @param create_query query such as "table_name (column_name0 column_type0 [constraints],
  *                                      ... ..., column_nameN column_typeN [constraints])"
  */
-int create_table(int fd, char *db_path, char *create_query, struct table *table_list, int size);
+int create_table(int fd, char *db_path, char *create_query, struct table **table_list, int size);

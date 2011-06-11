@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "jabberwocky_func.h"
 #include "drop_table.h"
@@ -29,9 +30,9 @@ int main(int argc, char *argv[]){
        exit(-1);         
     }
     char *dbPath = getDBDirStr(dbName);
-    struct table *tableList = 0;
-    int q = readTables(fd, tableList);    
-    
+    struct table *tableList = NULL;
+    int q = readTables(fd, &tableList);    
+    printf("\nq = %d\n", q);
     while(1){
        printf("%s > ", dbName);
        char *query, *firstWord;
@@ -46,8 +47,8 @@ int main(int argc, char *argv[]){
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ncreatetable works with \"%s\"\n", newquery);
-             ret = create_table(fd, dbPath, trim(newquery), tableList, q);
-             if (ret > 0)
+             ret = create_table(fd, dbPath, trim(newquery), &tableList, q);
+             if (ret == 0)
                 q++; 
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ndroptable works with \"%s\"\n", newquery);
              ret = drop_table(fd, dbPath, trim(newquery), tableList, q);
-             if (ret > 0)
+             if (ret == 0)
                 q--; 
        }else if (!strcmp(operation, "DELETE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
@@ -81,9 +82,15 @@ int main(int argc, char *argv[]){
        free(query);
        
     }
+    
+    lseek(fd, 0, SEEK_SET);
+    printf("\n1q = %d\n", q);
     writeTables(fd, tableList, q);
+    printf("\n2q = %d\n", q);
     free(tableList);
+    printf("\n3q = %d\n", q);
     free(dbPath);
+    printf("\n4q = %d\n", q);
     close(fd);
     return 0;   
 }
@@ -95,7 +102,7 @@ int getDBFD(char *base){
     strcat(dbPath, base);
     strcat(dbPath, "/.");
     strcat(dbPath, base); 
-    int fd = open(dbPath, O_RDWR | O_APPEND);
+    int fd = open(dbPath, O_RDWR);// | O_APPEND);
     
     free(dbPath);
     

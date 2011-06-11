@@ -17,7 +17,7 @@ int writeTables(int fd, struct table *tableList, int size);
 
 int writeTable (int fd, struct table newTable);
 
-int readTables (int fd, struct table *tableList);
+int readTables (int fd, struct table **tableList);
 
 int getFieldIndex(int fd, char* tableName, char* fieldName);
 

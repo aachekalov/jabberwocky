@@ -236,17 +236,17 @@ int write_table_structure(int fd, struct table *new_table, struct table **table_
 	return 0;
 }
 
-int create_table(int fd, char *db_path, char *create_query, struct table *table_list, int size) {
+int create_table(int fd, char *db_path, char *create_query, struct table **table_list, int size) {
 	printf("DEBUG: initial create query '%s'\n", create_query);
 	struct table *result = parse(create_query);
 	if (!result) {
 		printf("CALL: parse\n");
 		return -1;
 	}
-	printf("Error: Mashas code is begining\n");
 	// TODO: check table not exists;
 	// TODO: chech constraints (foreign key, ...)
-	write_table_structure(fd, result, &table_list, size);
-	create_table_data_file(result->table_name);	
+	write_table_structure(fd, result, table_list, size);
+	create_table_data_file(result->table_name);
+	printf("CREATE TABLE: SUCCESS\n");	
 	return 0;
 }

@@ -149,6 +149,17 @@ char* checkConstraints (struct table t, char **cols, char **vals, int size, char
                           return NULL;        
                   }                
                } 
+               if (t.columns[i].type == 4){
+				   if (vals[index][0] == '\'' && vals[index][strlen(vals[index]) - 1] == '\''){
+						int g;
+						for (g = 0; g < strlen(vals[index]) - 2; g++)
+							vals[index][g] = vals[index][g + 1];
+						vals[index][strlen(vals[index]) - 2] = '\0';
+					}else{
+						printf("Error: field %s must be char, \"\'\" not faund", t.columns[i].column_name);
+                        return NULL; 
+					}			
+               } 
                if (t.columns[i].constraints & 2 == t.columns[i].constraints || 
                    t.columns[i].constraints & 4 == t.columns[i].constraints){
                     if(!isValueExist(dbPath, t, t.columns[i].column_name, vals[index])){// TODO: search for cortege with equal value of the field    
