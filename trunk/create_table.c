@@ -35,6 +35,54 @@ char *parse_table_name(char *create_query, size_t table_len) {
 	return table_name;
 }
 
+struct table *create_table_by_name(char *query, size_t table_len) {
+	size_t query_len = strlen(query);
+	if (!query_len) {
+		printf("PARSE ERROR: table name must be not empty\n");
+		return NULL;
+	}
+
+	if (table_len == query_len) {
+		printf("PARSE ERROR: column not found\n");
+		return NULL;
+	}
+
+	if (query[query_len - 1] == ';') {
+		query[--query_len] = '\0';
+	}
+	trim(query);
+	if (query[query_len - 1] == ')') {
+		query[--query_len] = '\0';
+	} else {
+		printf("PARSE ERROR: check )\n");
+		return NULL;
+	}
+
+	struct table *result = (struct table *) malloc(sizeof(struct table));
+
+	result->table_name = parse_table_name(query, table_len);
+	if (!result->table_name) {
+		printf("CALL: parse_table_name\n");
+		free(result);
+		return NULL;
+	}
+	printf("DEBUG: table name '%s'\n", result->table_name);
+
+	return result;
+}
+
+struct column_declare *create_column_by_name(char *column_name) {
+	if (check_identifier_name(column_name)) {
+		printf("CALL: check_identifier_name\n");
+		return NULL;
+	}
+	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
+	column->column_name = (char *) calloc(strlen(column_name) + 1, sizeof(char));
+	strcpy(column->column_name, column_name);
+	printf("DEBUG: column name '%s'\n", column->column_name);
+	return column;
+}
+
 struct column_declare *parse_column_declare(char *column_declare_str) {
 	if (!(*column_declare_str)) {
 		printf("PARSE ERROR: empty column declare\n");
@@ -46,14 +94,11 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	char *next_token = column_declare_str;
 
 	char *column_name = cutTheFirstWord(next_token, &next_token);
-	if (check_identifier_name(column_name)) {
-		printf("CALL: check_identifier_name\n");
+	struct column_declare *column = create_column_by_name(column_name);
+	if (!column) {
+		printf("CALL: create_column_by_name\n");
 		return NULL;
 	}
-	struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
-	column->column_name = (char *) calloc(strlen(column_name) + 1, sizeof(char));
-	strcpy(column->column_name, column_name);
-	printf("DEBUG: column name '%s'\n", column->column_name);
 
 	char *type = trim(cutTheFirstWord(next_token, &next_token));
 	if (!(*type)) {
@@ -77,10 +122,12 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 
 	char *constraint = trim(cutTheFirstWord(next_token, &next_token));
 	column->constraints = 0;
-	while (*constraint) {
+	while (!strcmp(constraint, "")) {
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
-			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), _NULL)) {
+			constraint = trim(cutTheFirstWord(next_token, &next_token));
+			strup(constraint);
+			if (!strcmp(constraint, _NULL)) {
 				column->constraints += 1;
 			} else {
 				printf("PARSE ERROR: NULL must be after NOT\n");
@@ -93,7 +140,9 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 		} else if (!strcmp(constraint, UNIQUE)) {
 			column->constraints += 2;
 		} else if (!strcmp(constraint, PRIMARY)) {
-			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), KEY)) {
+			constraint = trim(cutTheFirstWord(next_token, &next_token));
+			strup(constraint);
+			if (!strcmp(constraint, KEY)) {
 				column->constraints += 4;
 			} else {
 				printf("PARSE ERROR: KEY must be after PRIMARY\n");
@@ -102,21 +151,25 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 				return NULL;
 			}
 		} else if (!strcmp(constraint, FOREIGN)) {
-			if (!strcmp(trim(cutTheFirstWord(next_token, &next_token)), KEY)) {
+			constraint = trim(cutTheFirstWord(next_token, &next_token));
+			strup(constraint);
+			if (!strcmp(constraint, KEY)) {
 				column->constraints += 8;
 				char *foreign = trim(cutTheFirstWord(next_token, &next_token));
-				size_t foreign_len = strlen(foreign);
+				printf("DEBUG: foreign key '%s'\n", foreign);
 				size_t table_len = strcspn(foreign, "(");
-				if (table_len == foreign_len) {
-					printf("PARSE ERROR: foreign key not found\n");
+				column->foreign_table = create_table_by_name(foreign, table_len);
+				if (!(column->foreign_table)) {
+					printf("CALL: create_table_by_name\n");
 					free(column->column_name);
 					free(column);
 					return NULL;
 				}
-				if (foreign[foreign_len - 1] == ')') {
-					foreign[--foreign_len] = '\0';
-				} else {
-					printf("PARSE ERROR: check ) at the end of foreign key constraint\n");
+				foreign += table_len + 1;
+				column->foreign_key = create_column_by_name(trim(foreign));
+				if (!(column->foreign_key)) {
+					printf("CALL: create_column_by_name\n");
+					free(column->foreign_table);
 					free(column->column_name);
 					free(column);
 					return NULL;
@@ -128,7 +181,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 				return NULL;
 			}
 		} else {
-			printf("constraint '%s' nod allowed\n", constraint);
+			printf("constraint '%s' not allowed\n", constraint);
 			return NULL;
 		}
 		constraint = trim(cutTheFirstWord(next_token, &next_token));
@@ -176,38 +229,12 @@ int parse_columns(struct table *result, char *columns_str) {
 }
 
 struct table *parse(char *create_query) {
-	size_t query_len = strlen(create_query);
-	if (!query_len) {
-		printf("PARSE ERROR: empty query\n");
-		return NULL;
-	}
-
 	size_t table_len = strcspn(create_query, "(");
-	if (table_len == query_len) {
-		printf("PARSE ERROR: columns declare not found\n");
+	struct table *result = create_table_by_name(create_query, table_len);
+	if (!result) {
+		printf("CALL: create_table_by_name\n");
 		return NULL;
 	}
-
-	if (create_query[query_len - 1] == ';') {
-		create_query[--query_len] = '\0';
-	}
-	trim(create_query);
-	if (create_query[query_len - 1] == ')') {
-		create_query[--query_len] = '\0';
-	} else {
-		printf("PARSE ERROR: check ) at the end\n");
-		return NULL;
-	}
-
-	struct table *result = (struct table *) malloc(sizeof(struct table));
-
-	result->table_name = parse_table_name(create_query, table_len);
-	if (!result->table_name) {
-		printf("CALL: parse_table_name\n");
-		free(result);
-		return NULL;
-	}
-	printf("DEBUG: table name '%s'\n", result->table_name);
 
 	create_query += table_len + 1;
 	if (parse_columns(result, trim(create_query))) {
@@ -220,17 +247,16 @@ struct table *parse(char *create_query) {
 	return result;
 }
 
-int create_table_data_file(char *table_name) {
+int create_table_data_file(char *db_path, char *table_name) {
 	int fd = open(table_name, O_WRONLY | O_CREAT | O_TRUNC, 0744);
-    if (fd < 0){
+	if (fd < 0) {
        perror("\nError in creating database");
        exit(-1);  
     }
-	return 0;
+	return close(fd);
 }
 
 int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size) {
-	//writeTable(fd, *new_table);
 	*table_list = (struct table *)realloc(*table_list, (size + 1) * sizeof(struct table));
 	(*table_list)[size] = *new_table;
 	return 0;
@@ -245,8 +271,6 @@ int create_table(int fd, char *db_path, char *create_query, struct table **table
 	}
 	// TODO: check table not exists;
 	// TODO: chech constraints (foreign key, ...)
-	write_table_structure(fd, result, table_list, size);
-	create_table_data_file(result->table_name);
-	printf("CREATE TABLE: SUCCESS\n");	
-	return 0;
+	write_table_structure(fd, result, &table_list, size);
+	return create_table_data_file(db_path, result->table_name);
 }
