@@ -37,3 +37,7 @@ int check_identifier_name(char *name);
 char *cutTheFirstWord(char *query, char **newquery);
 
 void strup(char *str);
+
+int split(char *str, char *sprtr, char **cols);
+
+int count (char *str, char *sprtr);

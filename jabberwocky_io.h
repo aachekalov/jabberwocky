@@ -13,6 +13,8 @@ struct column_declare {
 	struct column_declare *foreign_key;
 };
 
+int writeTables(int fd, struct table *tableList, int size);
+
 int writeTable (int fd, struct table newTable);
 
 int readTables (int fd, struct table *tableList);

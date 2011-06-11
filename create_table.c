@@ -229,12 +229,14 @@ int create_table_data_file(char *table_name) {
 	return 0;
 }
 
-int write_table_structure(int fd, struct table *new_table) {
-	writeTable(fd, *new_table);
+int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size) {
+	//writeTable(fd, *new_table);
+	*table_list = (struct table *)realloc(table_list, (size + 1) * sizeof(struct table));
+	*table_list[size] = *new_table;
 	return 0;
 }
 
-int create_table(int fd, char *db_path, char *create_query, struct table *table_list) {
+int create_table(int fd, char *create_query, struct table *table_list, int size) {
 	printf("DEBUG: initial create query '%s'\n", create_query);
 	struct table *result = parse(create_query);
 	if (!result) {
@@ -243,7 +245,7 @@ int create_table(int fd, char *db_path, char *create_query, struct table *table_
 	}
 	// TODO: check table not exists;
 	// TODO: chech constraints (foreign key, ...)
-	//write_table_structure(fd, result);
+	write_table_structure(fd, result, &table_list, size);
 	create_table_data_file(result->table_name);
 	printf("CREATE TABLE: SUCCESS\n");
 	return 0;

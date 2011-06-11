@@ -9,6 +9,15 @@
 
 int lastIndex = 0;
 
+int writeTables(int fd, struct table *tableList, int size){
+    int i;
+    for (i = 0; i < size; i++)
+        if (writeTable(fd, tableList[i]))
+           return -1;
+           
+    return 0;
+}
+
 int writeTable (int fd, struct table newTable){
 	int len = strlen(newTable.table_name);
 	if(write(fd, &len, sizeof(int)) != sizeof(int)){
