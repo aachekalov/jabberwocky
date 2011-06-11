@@ -77,3 +77,30 @@ void strup(char *str)
 		s++; 
 	} 
 }
+
+int split(char *str, char *sprtr, char **cols){
+	int len, i = 0;
+	int res = count(str, sprtr);
+	char **c = (char **)malloc(res*sizeof(char *));
+	while(len = strcspn(str, sprtr)){
+		char* buf = (char *)malloc(len * sizeof(char));
+		strncpy(buf, str, len);
+		buf = trim(buf);
+		c[i] = (char *)malloc(len * sizeof(char));
+		strcpy(c[i], buf);
+		str += len + 1;
+		i++;
+		free(buf);
+	}
+	cols = c;
+	return res;
+}
+
+int count (char *str, char *sprtr){
+	int len, i = 0;
+	while(len = strcspn(str, sprtr)){
+		str += len + 1;
+		i++;
+	}
+	return i;
+}
