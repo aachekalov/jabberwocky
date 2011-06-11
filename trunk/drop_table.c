@@ -10,7 +10,7 @@
 
 #include "drop_table.h"
 
-int dropTable(int fd, char *dbPath, char *query, struct table *tableList, int size){
+int drop_table(int fd, char *dbPath, char *query, struct table *tableList, int size){
     char **ptr = 0;
     int q, i;
     if ((q = split(query, " ", ptr)) > 1){
@@ -34,10 +34,10 @@ int dropTable(int fd, char *dbPath, char *query, struct table *tableList, int si
     return 0;
 }
 
-int removeTable(char *tableName, struct table **tableList, size){
+int removeTable(char *tableName, struct table **tableList, int size){
     int i, k;
     for (i = 0; i < size - 1; i++){
-        if (!strcmp(*tableList[i].table_name, tableName))
+        if (!strcmp((*tableList)[i].table_name, tableName))
            i = k;
         if (i >= k)
            *tableList[i] = *tableList[i+1];
@@ -46,11 +46,11 @@ int removeTable(char *tableName, struct table **tableList, size){
     return 0;
 }
 
-int isForeignKey(char *tableName, struct table tableList, int size){
+int isForeignKey(char *tableName, struct table *tableList, int size){
     int i, j;
     for (i = 0; i < size; i++)
         for (j = 0; j < tableList[i].column_count; j++){
-            if (tableList[i].columns[j].constraints > 8 && !strcmp(tableList[i].columns[j].foreign_table.table_name, tableName))
+            if (tableList[i].columns[j].constraints > 8 && !strcmp(tableList[i].columns[j].foreign_table->table_name, tableName))
                return 0;
         }
     return 1;        
