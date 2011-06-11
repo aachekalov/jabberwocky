@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-//#include "jabberwocky_io.h"
+#include "jabberwocky_io.h"
 #include "parsing_tools.h"
 
 #include "drop_table.h"
@@ -26,7 +26,7 @@ int drop_table(int fd, char *dbPath, char *query, struct table *tableList, int s
        printf("Error: another table has link to this table");
        return -1;                      
     }
-    // TODO: delete from main file
+    
     char *path = dbPath;
     strcat(path, query);
     remove(path);

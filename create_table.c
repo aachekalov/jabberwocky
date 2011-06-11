@@ -4,7 +4,7 @@
 #include <fcntl.h>
 
 #include "parsing_tools.h"
-//#include "jabberwocky_io.h" moved to "create_table.h"
+#include "jabberwocky_io.h" //moved to "create_table.h"
 #include "create_table.h"
 
 int check_table_name_length(size_t table_len) {
@@ -231,22 +231,22 @@ int create_table_data_file(char *table_name) {
 
 int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size) {
 	//writeTable(fd, *new_table);
-	*table_list = (struct table *)realloc(table_list, (size + 1) * sizeof(struct table));
-	*table_list[size] = *new_table;
+	*table_list = (struct table *)realloc(*table_list, (size + 1) * sizeof(struct table));
+	(*table_list)[size] = *new_table;
 	return 0;
 }
 
-int create_table(int fd, char *create_query, struct table *table_list, int size) {
+int create_table(int fd, char *db_path, char *create_query, struct table *table_list, int size) {
 	printf("DEBUG: initial create query '%s'\n", create_query);
 	struct table *result = parse(create_query);
 	if (!result) {
 		printf("CALL: parse\n");
 		return -1;
 	}
+	printf("Error: Mashas code is begining\n");
 	// TODO: check table not exists;
 	// TODO: chech constraints (foreign key, ...)
 	write_table_structure(fd, result, &table_list, size);
-	create_table_data_file(result->table_name);
-	printf("CREATE TABLE: SUCCESS\n");
+	create_table_data_file(result->table_name);	
 	return 0;
 }
