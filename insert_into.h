@@ -1,6 +1,6 @@
-int insert_into(char *query, struct table *tableList, char *dbPath);
+int insert_into(char *query, struct table *tableList, int size, char *dbPath);
 
-int isTableName(char *name, struct table *tableList);
+int isTableName(char *name, struct table *tableList, int size);
 
 char * checkConstraints (struct table t, char **cols, char **vals, int size, char *path);
 
