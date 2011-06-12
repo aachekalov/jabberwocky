@@ -10,39 +10,42 @@
 
 #include "drop_table.h"
 
-int drop_table(int fd, char *dbPath, char *query, struct table *tableList, int size){
+int drop_table(int fd, char *dbPath, char *query, struct table **tableList, int size){
     char **ptr = 0;
     int q, i;
-    if ((q = split(query, " ", ptr)) > 1){
+    if ((q = split(query, " ", &ptr)) > 1){
        for (i = 0; i < q; i++)
            free(ptr[i]); 
        printf("Error: wrong query");
        return -1;      
     }
-    if (';' == query[strlen(query)-1])
-       query[strlen(query)-1] = '\0';
-       
-    if (!isForeignKey(query, tableList, size)){
+    if (';' == ptr[0][strlen(ptr[0])-1])
+       ptr[0][strlen(ptr[0])-1] = '\0';
+      
+    if (!isForeignKey(ptr[0], *tableList, size)){
        printf("Error: another table has link to this table");
        return -1;                      
     }
-    
-    char *path = dbPath;
-    strcat(path, query);
-    remove(path);
-    removeTable(query, &tableList, size);
+    char *path = (char *)calloc(strlen(dbPath) + 1, sizeof(char));
+	 strcpy(path, dbPath);
+    strcat(path, ptr[0]);
+    remove(path);printf("Good yet\n"); 
+    removeTable(ptr[0], tableList, size);
+    free(path);
+    printf("Good yet\n"); 
     return 0;
 }
 
 int removeTable(char *tableName, struct table **tableList, int size){
     int i, k;
+    printf("removeTable: table name = '%s'\n", tableName);
     for (i = 0; i < size - 1; i++){
         if (!strcmp((*tableList)[i].table_name, tableName))
-           i = k;
+           k = i;
         if (i >= k)
-           *tableList[i] = *tableList[i+1];
+           (*tableList)[i] = (*tableList)[i+1];
     }        
-    *tableList = (struct table *)realloc(tableList, (size - 1) * sizeof(struct table));
+    *tableList = (struct table *)realloc(*tableList, (size - 1) * sizeof(struct table));
     return 0;
 }
 
