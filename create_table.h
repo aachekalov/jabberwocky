@@ -15,6 +15,8 @@ int create_table_data_file(char *db_path, char *table_name);
 
 int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size);
 
+int is_in_table_list(char *table_name, struct table *table_list, int size);
+
 /**
  * @param fd file descriptor main database file
  * @param create_query query such as "table_name (column_name0 column_type0 [constraints],
