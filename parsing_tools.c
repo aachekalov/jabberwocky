@@ -78,21 +78,22 @@ void strup(char *str)
 	} 
 }
 
-int split(char *str, char *sprtr, char **cols){
+int split(char *str, char *sprtr, char ***cols){
 	int len, i = 0;
 	int res = count(str, sprtr);
 	char **c = (char **)malloc(res*sizeof(char *));
 	while(len = strcspn(str, sprtr)){
-		char* buf = (char *)malloc(len * sizeof(char));
+
+		char* buf = (char *)calloc(len, sizeof(char));
 		strncpy(buf, str, len);
-		buf = trim(buf);
-		c[i] = (char *)malloc(len * sizeof(char));
-		strcpy(c[i], buf);
+		c[i] = (char *)calloc((len+1), sizeof(char));
+		strcpy(c[i], trim(buf));
 		str += len + 1;
+printf("split: i = %d, len = %d, c[i] = '%s'\n", i, len, c[i]);
 		i++;
 		free(buf);
 	}
-	cols = c;
+	*cols = c;
 	return res;
 }
 
