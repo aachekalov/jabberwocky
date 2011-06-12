@@ -46,10 +46,11 @@ int main(int argc, char *argv[]){
        int ret = 0;
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ncreatetable works with \"%s\"\n", newquery);
+             //TODO: firstWord == TABLE
              ret = create_table(fd, dbPath, trim(newquery), &tableList, q);
              if (ret == 0)
-                q++; 
+                q++;
+             else printf("CREATE TABLE: FAIL\n");
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ninsertinto works with \"%s\"\n", newquery);

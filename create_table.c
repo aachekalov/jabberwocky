@@ -4,7 +4,7 @@
 #include <fcntl.h>
 
 #include "parsing_tools.h"
-#include "jabberwocky_io.h" //moved to "create_table.h"
+#include "jabberwocky_io.h"
 #include "create_table.h"
 
 int check_table_name_length(size_t table_len) {
@@ -47,12 +47,8 @@ struct table *create_table_by_name(char *query, size_t table_len) {
 		return NULL;
 	}
 
-	if (query[query_len - 1] == ';') {
-		query[--query_len] = '\0';
-	}
-	trim(query);
-	if (query[query_len - 1] == ')') {
-		query[--query_len] = '\0';
+	if (query[--query_len] == ')') {
+		query[query_len] = '\0';
 	} else {
 		printf("PARSE ERROR: check )\n");
 		return NULL;
@@ -122,7 +118,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 
 	char *constraint = trim(cutTheFirstWord(next_token, &next_token));
 	column->constraints = 0;
-	while (!strcmp(constraint, "")) {
+	while (strcmp(constraint, "")) {
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
 			constraint = trim(cutTheFirstWord(next_token, &next_token));
@@ -136,7 +132,7 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 				return NULL;
 			}
 		} else if (!strcmp(constraint, _NULL)) {
-			// nothing
+			// column->constraints += 0;
 		} else if (!strcmp(constraint, UNIQUE)) {
 			column->constraints += 2;
 		} else if (!strcmp(constraint, PRIMARY)) {
@@ -229,6 +225,12 @@ int parse_columns(struct table *result, char *columns_str) {
 }
 
 struct table *parse(char *create_query) {
+	size_t query_len = strlen(create_query);
+	if (create_query[--query_len] == ';') {
+		create_query[query_len] = '\0';
+	}
+	trim(create_query);
+
 	size_t table_len = strcspn(create_query, "(");
 	struct table *result = create_table_by_name(create_query, table_len);
 	if (!result) {
@@ -248,11 +250,17 @@ struct table *parse(char *create_query) {
 }
 
 int create_table_data_file(char *db_path, char *table_name) {
-	int fd = open(table_name, O_WRONLY | O_CREAT | O_TRUNC, 0744);
+	size_t db_path_len = strlen(db_path);
+	size_t table_name_len = strlen(table_name);
+	char *pathname = (char *) calloc(db_path_len + table_name_len + 1, sizeof(char));
+	strcpy(pathname, db_path);
+	strcat(pathname, table_name);
+	int fd = open(pathname, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	free(pathname);
 	if (fd < 0) {
-       perror("\nError in creating database");
-       exit(-1);  
-    }
+		perror("open");
+		return -1;
+	}
 	return close(fd);
 }
 
@@ -269,8 +277,18 @@ int create_table(int fd, char *db_path, char *create_query, struct table **table
 		printf("CALL: parse\n");
 		return -1;
 	}
+
 	// TODO: check table not exists;
-	// TODO: chech constraints (foreign key, ...)
-	write_table_structure(fd, result, &table_list, size);
-	return create_table_data_file(db_path, result->table_name);
+	// TODO: check constraints (foreign key, ...)
+	// TODO: check column names unique
+
+	write_table_structure(fd, result, table_list, size);
+
+	if (create_table_data_file(db_path, result->table_name)) {
+		printf("CALL: create_table_data_file\n");
+		return -1;
+	}
+
+	printf("CREATE TABLE: SUCCESS\n");
+	return 0;
 }
