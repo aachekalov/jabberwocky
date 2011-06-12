@@ -9,7 +9,7 @@
 
 #include "insert_into.h"
 
-int insert_into(char *query, struct table *tableList, char *dbPath){
+int insert_into(char *query, struct table *tableList, int s, char *dbPath){
 	char *q = query;
 	char *tableName = getTableName(&q);
 	if(!tableName){
@@ -64,9 +64,9 @@ int insert_into(char *query, struct table *tableList, char *dbPath){
 		return -1;
 	}	
 	char **cols = 0, **vals = 0;
-	int size = split(columns, ",", cols);
+	int size = split(columns, ",", &cols);
 	int ssize, i;
-	if (size != (ssize = split(colVals, ",", vals))){
+	if (size != (ssize = split(colVals, ",", &vals))){
 		for (i = 0; i < size; i++)
 			free(cols[i]);		
 		
@@ -80,49 +80,55 @@ int insert_into(char *query, struct table *tableList, char *dbPath){
 	}
 	free(columns);
 	free(colVals);
-	
-	int index = isTableName(tableName, tableList);
+printf("Insert into: table name = '%s'\n", tableName);
+	int index = isTableName(tableName, tableList, s);
 	if (index < 0){
-		printf("Error: non-existent table");		
+		printf("Error: non-existent table\n");		
 		return -1;
 	}
-	char *resLine = (char *)malloc(1024 * sizeof(char));  // very-very bad (((
+	char *resLine;
 	if ((resLine = checkConstraints(tableList[index], cols, vals, size, dbPath)) == NULL){
 		printf("Error: wrong query");
 		return -1;
-	}	
+	}
 	for (i = 0; i < size; i++){
 		free(cols[i]);
 		free(vals[i]);
 	}
-	char *path = dbPath;
+printf("Insert into: table name = '%s'\n", tableName);
+	char *path = (char *)calloc(strlen(dbPath) + strlen(tableName) + 1, sizeof(char));
+	strcpy(path, dbPath);
 	strcat(path, tableName);
 	free(tableName);
 	FILE * fd = fopen(path, "a");
 	fprintf(fd, "%s\n", resLine);
+printf("path = '%s', res line = %s\n", path, resLine);
+	free(path);
+	free(resLine);
 	fclose(fd);
 	return 0;
 }
 
-int isTableName(char *name, struct table *tableList){
+int isTableName(char *name, struct table *tableList, int size){
 	int i;
-	for (i = 0; i < sizeof(tableList)/sizeof(struct table); i++)
+	for (i = 0; i < size; i++)
 		if (!strcmp(tableList[i].table_name, name))
 			return i;
 	return -1;
 }
 
 char* checkConstraints (struct table t, char **cols, char **vals, int size, char *dbPath){
-    char line[1024];
+    char *line = (char *)calloc(1024, sizeof(char)); //!!
 	int i, index, count = 0;
 	if (size > t.column_count){
 		printf("Error: too many columns for %s", t.table_name);
 		return NULL;
 	}
+
 	for(i = 0; i < t.column_count; i++){
-        if ((index = isIn(t.columns[i].column_name, cols, size) < 0)){
-               if (t.columns[i].constraints & 1 == t.columns[i].constraints){
-			      if (isIn(t.columns[i].column_name, cols, size) < 0){
+        if ((index = isIn(t.columns[i].column_name, cols, size)) < 0){
+				if (t.columns[i].constraints & 1 == t.columns[i].constraints){
+				  if (isIn(t.columns[i].column_name, cols, size) < 0){
 				     printf("Error: column %s must be not null", t.columns[i].column_name);
 				     return NULL;
                   }
@@ -132,20 +138,18 @@ char* checkConstraints (struct table t, char **cols, char **vals, int size, char
 		}else{
                count ++;
                if (t.columns[i].type == 1){
-                  char *end;                  
+                  char *end = vals[index];                  
                   long val = strtol(vals[index], &end, 10);
-                  if(end || (val == INT_MAX || val == INT_MIN)){
-                          printf("Error: field %s must be integer or your value is too big", t.columns[i].column_name);
-                          free(end);
+                  if(strcmp(end, "") || (val >= INT_MAX || val <= INT_MIN)){ //((
+                          printf("Error: field '%s' must be integer or your value is too big\n", t.columns[i].column_name);
                           return NULL;        
                   }                    
                }
                if (t.columns[i].type == 2){
-                  char *end;                  
+                  char *end = vals[index];                  
                   double val = strtod(vals[index], &end);
-                  if(end || (val >= FLT_MAX || val >= FLT_MIN)){
-                          printf("Error: field %s must be float or your value is too big", t.columns[i].column_name);
-                          free(end);
+                  if(strcmp(end, "") || (val >= FLT_MAX || val <= FLT_MIN)){ //((
+                          printf("Error: field %s must be float or your value is too big\n", t.columns[i].column_name);
                           return NULL;        
                   }                
                } 
@@ -162,13 +166,13 @@ char* checkConstraints (struct table t, char **cols, char **vals, int size, char
                } 
                if (t.columns[i].constraints & 2 == t.columns[i].constraints || 
                    t.columns[i].constraints & 4 == t.columns[i].constraints){
-                    if(!isValueExist(dbPath, t, t.columns[i].column_name, vals[index])){// TODO: search for cortege with equal value of the field    
+                    if(!isValueExist(dbPath, t, t.columns[i].column_name, vals[index])){   
                             printf("Error: field %s must be unique", t.columns[i].column_name);
                             return NULL;
                     }                  
                }
                if (t.columns[i].constraints >= 8){
-                  if(isValueExist(dbPath, *t.columns[i].foreign_table, t.columns[i].foreign_key->column_name, vals[index])){// TODO: search for foreign key   
+                  if(isValueExist(dbPath, *t.columns[i].foreign_table, t.columns[i].foreign_key->column_name, vals[index])){
                             printf("Error: non-existent foreign key");
                             return NULL;
                   }                    
@@ -215,9 +219,13 @@ int isValueExist (char *dbPath, struct table t, char *columnName, char *value) {
 
 int isIn(char *col, char **cols, int size){
 	int i;
-	for (i = 0; i < size; i++)
+
+	for (i = 0; i < size; i++){
+		printf("IsIn i = %d, col = '%s', cols[i] = '%s'\n", i, col, cols[i]);
 		if (!strcmp(col, cols[i]))
 			return i;
+	}
+
 	return -1;
 }
 
