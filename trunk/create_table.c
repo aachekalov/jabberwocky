@@ -147,6 +147,8 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	char *constraint = trim(word);
 	column->constraints = 0;
 	while (strcmp(constraint, "")) {
+		if (!(*(next_token - 1)))
+			break;
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
 			free(word);
@@ -252,8 +254,6 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 			free(column);
 			return NULL;
 		}
-		if (!(*(next_token - 1)))
-			break;
 		free(word);
 		word = cutTheFirstWord(next_token, &next_token);
 		constraint = trim(word);
@@ -278,7 +278,38 @@ int parse_columns(struct table *result, char *columns_str) {
 	result->columns = NULL;
 	result->column_count = 0;
 
-	char **columns_declare_strs = NULL;
+	size_t column_len;
+	while (column_len = strcspn(columns_str, ",")) {
+		char *column_declare_str = (char *) calloc(column_len + 2, sizeof(char));
+		strncpy(column_declare_str, columns_str, column_len);
+		struct column_declare *column = parse_column_declare(trim(column_declare_str));
+		if (!column) {
+			printf("CALL: parse_column_declare\n");
+			free(column_declare_str);
+			if (result->columns) {
+				free_all_columns(result);
+			}
+			return -1;
+		}
+		result->columns = (struct column_declare *) realloc(
+			result->columns,
+			(result->column_count + 1) * sizeof(struct column_declare)
+		);
+		result->columns[result->column_count] = *column;
+		result->column_count++;
+		free(column_declare_str);
+		columns_str += column_len + 1;
+	}
+	columns_str--;
+	if (*columns_str) {
+		if (result->columns) {
+			free_all_columns(result);
+		}
+		printf("PARSE ERROR: check , in columns declare\n");
+		return -1;
+	}
+
+	/*char **columns_declare_strs = NULL;
 	int size = split(columns_str, ",", &columns_declare_strs);
 	int i;
 	for (i = 0; i < size; i++) {
@@ -296,7 +327,8 @@ int parse_columns(struct table *result, char *columns_str) {
 		);
 		result->columns[result->column_count] = *column;
 		result->column_count++;
-	}
+	}*/
+
 	return 0;
 }
 
@@ -394,6 +426,12 @@ int check_constraints(struct table *result, struct table *table_list, int size) 
 				free(result->table_name);
 				return -1;
 			}
+			printf("DEBUG: '%s' on foreign table: '%s'\n",
+				result->columns[i].column_name, result->columns[i].foreign_table->table_name);
+			printf("       on foreign key: '%s', type: %d, constraints: %d\n",
+				result->columns[i].foreign_key->column_name,
+				result->columns[i].foreign_key->type,
+				result->columns[i].foreign_key->constraints);
 		}
 	}
 	return 0;
