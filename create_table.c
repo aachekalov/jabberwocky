@@ -252,6 +252,8 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 			free(column);
 			return NULL;
 		}
+		if (!(*(next_token - 1)))
+			break;
 		free(word);
 		word = cutTheFirstWord(next_token, &next_token);
 		constraint = trim(word);
@@ -276,14 +278,13 @@ int parse_columns(struct table *result, char *columns_str) {
 	result->columns = NULL;
 	result->column_count = 0;
 
-	size_t column_len;
-	while (column_len = strcspn(columns_str, ",")) {
-		char *column_declare_str = (char *) calloc(column_len + 2, sizeof(char));
-		strncpy(column_declare_str, columns_str, column_len);
-		struct column_declare *column = parse_column_declare(trim(column_declare_str));
+	char **columns_declare_strs = NULL;
+	int size = split(columns_str, ",", &columns_declare_strs);
+	int i;
+	for (i = 0; i < size; i++) {
+		struct column_declare *column = parse_column_declare(columns_declare_strs[i]);
 		if (!column) {
 			printf("CALL: parse_column_declare\n");
-			free(column_declare_str);
 			if (result->columns) {
 				free_all_columns(result);
 			}
@@ -295,16 +296,6 @@ int parse_columns(struct table *result, char *columns_str) {
 		);
 		result->columns[result->column_count] = *column;
 		result->column_count++;
-		free(column_declare_str);
-		columns_str += column_len + 1;
-	}
-	columns_str--;
-	if (*columns_str) {
-		if (result->columns) {
-			free_all_columns(result);
-		}
-		printf("PARSE ERROR: check , in columns declare\n");
-		return -1;
 	}
 	return 0;
 }
@@ -335,6 +326,13 @@ struct table *parse(char *create_query) {
 }
 
 int check_column_unique(struct table *result) {
+	int i, j;
+	for (i = 0; i < result->column_count - 1; i++) {
+		for (j = i + 1; j < result->column_count; j++) {
+			if (!strcmp(result->columns[i].column_name, result->columns[j].column_name))
+				return -1;
+		}
+	}
 	return 0;
 }
 
@@ -391,6 +389,7 @@ int check_constraints(struct table *result, struct table *table_list, int size) 
 	for (i = 0; i < result->column_count; i++) {
 		if (result->columns[i].foreign_table) {
 			if (check_foreign_key(&(result->columns[i]), table_list, size)) {
+				printf("CALL: check_foreign_key\n");
 				free_all_columns(result);
 				free(result->table_name);
 				return -1;
