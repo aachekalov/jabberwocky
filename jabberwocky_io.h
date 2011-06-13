@@ -2,7 +2,6 @@ struct table {
 	char *table_name;
 	unsigned char column_count;
 	struct column_declare *columns;
-	
 };
 
 struct column_declare {
