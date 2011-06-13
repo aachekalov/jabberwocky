@@ -61,7 +61,7 @@ int check_identifier_name(char *name) {
 
 char *cutTheFirstWord(char *query, char **newquery) {
 	if (strlen(query) == 0)
-		return "";
+		return calloc(1, sizeof(char));
 	int len = strcspn(query, trimming_chars);
 	char *firstWord = (char *) calloc(len + 1, sizeof(char));
 	strncpy(firstWord, query, len);

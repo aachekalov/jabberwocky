@@ -53,7 +53,8 @@ int main(int argc, char *argv[]){
              if (ret == 0){
 				dirtyBit = 1;
                 q++; 
-	     	 }
+	     	 } else
+	      	    printf("CREATE TABLE: FAIL\n");
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ninsertinto works with \"%s\"\n", newquery);
@@ -67,7 +68,8 @@ int main(int argc, char *argv[]){
              if (ret == 0){
 				dirtyBit = 1;
                 q--; 
-	      	 }
+	      	 } else
+	      	    printf("DROP TABLE: FAIL\n");
        }else if (!strcmp(operation, "DELETE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, trim(newquery));      

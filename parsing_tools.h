@@ -1,4 +1,4 @@
-#define base_accepting_chars "etaonrishdlfcmupgywbvkjxzqETAONRISHDLFCMUPGYWBVKJXZQ" // skip 1 char (guess what?)
+#define base_accepting_chars "etaonrishdlfcmupgywbvkjxzqETAONRISHDLFCMUPGYWBVKJXZQ"
 #define free_accepting_chars "_1234567890"
 #define trimming_chars " \t\n\r"
 
