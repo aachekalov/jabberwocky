@@ -330,7 +330,7 @@ int parse_columns(struct table *result, char *columns_str) {
 	return 0;
 }
 
-struct table *parse(char *create_query) {
+struct table *parse_create_query(char *create_query) {
 	size_t query_len = strlen(create_query);
 	if (create_query[--query_len] == ';') {
 		create_query[query_len] = '\0';
@@ -397,12 +397,9 @@ int check_foreign_key(struct column_declare *column, struct table *table_list, i
 				}
 			}
 		}
-		if (i == size - 1) {
-			printf("ERROR: no such foreign table '%s'\n", column->foreign_table->table_name);
-				return -1;
-		}
 	}
-	return 0;
+	printf("ERROR: no such foreign table '%s'\n", column->foreign_table->table_name);
+	return -1;
 }
 
 int check_constraints(struct table *result, struct table *table_list, int size) {
@@ -458,9 +455,9 @@ int create_table_data_file(char *db_path, char *table_name) {
 
 int create_table(int fd, char *db_path, char *create_query, struct table **table_list, int size) {
 	printf("DEBUG: initial create query '%s'\n", create_query);
-	struct table *result = parse(create_query);
+	struct table *result = parse_create_query(create_query);
 	if (!result) {
-		printf("CALL: parse\n");
+		printf("CALL: parse_create_query\n");
 		return -1;
 	}
 
