@@ -56,6 +56,8 @@ struct table *create_table_by_name(char *query, size_t table_len) {
 
 	struct table *result = (struct table *) malloc(sizeof(struct table));
 
+	result->columns = NULL;
+	result->column_count = 0;
 	result->table_name = parse_table_name(query, table_len);
 	if (!result->table_name) {
 		printf("CALL: parse_table_name\n");
@@ -74,6 +76,8 @@ struct column_declare *create_column_by_name(char *column_name) {
    }
 
    struct column_declare *column = (struct column_declare *) malloc(sizeof(struct column_declare));
+   column->foreign_table = NULL;
+   column->foreign_key = NULL;
    column->column_name = (char *) calloc(strlen(column_name) + 1, sizeof(char));
    strcpy(column->column_name, column_name);
    printf("DEBUG: column name '%s'\n", column->column_name);
@@ -114,9 +118,6 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 		return NULL;
 	}
 
-	column->foreign_table = NULL;
-	column->foreign_key = NULL;
-
 	char *word = cutTheFirstWord(next_token, &next_token);
 	char *type = trim(word);
 	if (!(*type)) {
@@ -147,8 +148,6 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 	char *constraint = trim(word);
 	column->constraints = 0;
 	while (strcmp(constraint, "")) {
-		if (!(*(next_token - 1)))
-			break;
 		strup(constraint);
 		if (!strcmp(constraint, NOT)) {
 			free(word);
@@ -254,6 +253,8 @@ struct column_declare *parse_column_declare(char *column_declare_str) {
 			free(column);
 			return NULL;
 		}
+		if (!(*(next_token - 1)))
+			break;
 		free(word);
 		word = cutTheFirstWord(next_token, &next_token);
 		constraint = trim(word);
@@ -274,9 +275,6 @@ int free_all_columns(struct table *result) {
 
 int parse_columns(struct table *result, char *columns_str) {
 	printf("DEBUG: columns declare '%s'\n", columns_str);
-
-	result->columns = NULL;
-	result->column_count = 0;
 
 	size_t column_len;
 	while (column_len = strcspn(columns_str, ",")) {
