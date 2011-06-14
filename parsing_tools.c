@@ -78,12 +78,13 @@ void strup(char *str)
 	} 
 }
 
-int split(char *str, char *sprtr, char ***cols){
-	int len, i = 0;
+int split(char *str, char *sprtr, char ***cols){	
+	int len = 0, i = 0, j;
 	int res = count(str, sprtr);
+	printf("\nsplit: initial str = '%s', count = %d\n", str, res);
 	char **c = (char **)malloc(res*sizeof(char *));
-	while(len = strcspn(str, sprtr)){
-
+	for(j = 0; j < res; j++){//while(len < strlen(str)){
+		len = strcspn(str, sprtr);
 		char* buf = (char *)calloc(len, sizeof(char));
 		strncpy(buf, str, len);
 		c[i] = (char *)calloc((len+1), sizeof(char));
@@ -98,9 +99,10 @@ printf("split: i = %d, len = %d, c[i] = '%s'\n", i, len, c[i]);
 }
 
 int count (char *str, char *sprtr){
-	int len, i = 0;
-	while(len = strcspn(str, sprtr)){
-		str += len + 1;
+	int len = 0, i = 0;
+	while(len < strlen(str)){
+		len += strcspn(str + len, sprtr);
+		len++;
 		i++;
 	}
 	return i;
