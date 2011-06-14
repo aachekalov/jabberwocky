@@ -9,7 +9,7 @@ struct column_declare *parse_column_declare(char *column_declare_str);
 int free_all_columns(struct table *result);
 int parse_columns(struct table *result, char *columns_str);
 
-struct table *parse(char *create_query);
+struct table *parse_create_query(char *create_query);
 
 int check_column_unique(struct table *result);
 int is_in_table_list(char *table_name, struct table *table_list, int size);
