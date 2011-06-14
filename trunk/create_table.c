@@ -451,7 +451,7 @@ int create_table_data_file(char *db_path, char *table_name) {
 	free(pathname);
 	if (fd < 0) {
 		perror("open");
-	return -1;
+		return -1;
 	}
 	return close(fd);
 }
