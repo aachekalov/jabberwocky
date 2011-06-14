@@ -44,40 +44,57 @@ int main(int argc, char *argv[]){
        char *operation = cutTheFirstWord(newquery, &newquery);
        strup(operation); // Special for Alexey 
        newquery = trim(newquery);
-
        
        int ret = 0;
        if (!strcmp(operation, "CREATE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
-             ret = create_table(fd, dbPath, trim(newquery), &tableList, q); 
+			 strup(firstWord);
+			 if (strcmp(firstWord, "TABLE"))
+				ret = -1;
+			 else
+	            ret = create_table(fd, dbPath, trim(newquery), &tableList, q); 
              if (ret == 0){
 				dirtyBit = 1;
                 q++; 
-	     	 } else
-	      	    printf("CREATE TABLE: FAIL\n");
+	     	 }
+			 free(firstWord);
        }else if (!strcmp(operation, "INSERT")){ 
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ninsertinto works with \"%s\"\n", newquery);
-             ret = insert_into(trim(newquery), tableList, q, dbPath);  
+			 strup(firstWord);
+			 if (strcmp(firstWord, "INTO"))
+				ret = -1;
+			 else
+	            ret = insert_into(trim(newquery), tableList, q, dbPath); 
+             free(firstWord); 
        }else if (!strcmp(operation, "UPDATE")){
              printf("\nupdate works with \"%s\"\n", newquery);//ret = update(fd, newquery); 
        }else if (!strcmp(operation, "DROP")){
              firstWord = cutTheFirstWord(newquery, &newquery);
              printf("\ndroptable works with \"%s\"\n", newquery);
-             ret = drop_table(fd, dbPath, trim(newquery), &tableList, q);
+			 strup(firstWord);
+			 if (strcmp(firstWord, "TABLE"))
+				ret = -1;
+			 else
+	            ret = drop_table(fd, dbPath, trim(newquery), &tableList, q);
              if (ret == 0){
 				dirtyBit = 1;
                 q--; 
-	      	 } else
-	      	    printf("DROP TABLE: FAIL\n");
+	      	 }
+			 free(firstWord);
        }else if (!strcmp(operation, "DELETE")){
              firstWord = cutTheFirstWord(newquery, &newquery);
-             printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, trim(newquery));      
+			 strup(firstWord);
+			 if (strcmp(firstWord, "FROM"))
+				ret = -1;
+			 else	             
+             	printf("\ndeletefrom works with \"%s\"\n", newquery);//ret = delete_from(fd, trim(newquery));  
+			 free(firstWord);    
        }else if (!strcmp(operation, "SELECT")){
              printf("\nselect works with \"%s\"\n", newquery);//ret = select(fd, newquery);
        }else if (!strcmp(operation, "QUIT") || !strcmp(operation, "Q") || 
 				 !strcmp(operation, "EXIT") || !strcmp(operation, "E")){
-		     free(query);
+		     free(operation);
+			 free(query);
 		     break;
 	   }else if (!strcmp(operation, "")){
 		     continue;     
@@ -86,7 +103,7 @@ int main(int argc, char *argv[]){
        }
        if (ret < 0)
              printf("\n\tWrong query. Please, be more attentive.\n");
-        
+       free(operation);
        free(query);
     }
 	

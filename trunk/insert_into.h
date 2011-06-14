@@ -11,3 +11,5 @@ char * getTableName (char **q);
 int isValuesExists(char **q);
 
 int isIn(char *col, char **cols, int size);
+
+int isValueExist (char *dbPath, struct table *t, char *columnName, char *value);

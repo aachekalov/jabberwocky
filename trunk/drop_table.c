@@ -27,19 +27,19 @@ int drop_table(int fd, char *dbPath, char *query, struct table **tableList, int 
        return -1;                      
     }
     char *path = (char *)calloc(strlen(dbPath) + 1, sizeof(char));
-	 strcpy(path, dbPath);
+	strcpy(path, dbPath);
     strcat(path, ptr[0]);
-    remove(path);printf("Good yet\n"); 
+    remove(path);
     removeTable(ptr[0], tableList, size);
-    free(path);
-    printf("Good yet\n"); 
+	free(path);
+	printf("DEBUG: table '%s' was successfully removed\n", ptr[0]);
+	free(ptr[0]);
     return 0;
 }
 
 int removeTable(char *tableName, struct table **tableList, int size){
     int i, k;
-    printf("removeTable: table name = '%s'\n", tableName);
-    for (i = 0; i < size - 1; i++){
+	for (i = 0; i < size - 1; i++){
         if (!strcmp((*tableList)[i].table_name, tableName))
            k = i;
         if (i >= k)
@@ -52,9 +52,9 @@ int removeTable(char *tableName, struct table **tableList, int size){
 int isForeignKey(char *tableName, struct table *tableList, int size){
     int i, j;
     for (i = 0; i < size; i++)
-        for (j = 0; j < tableList[i].column_count; j++){
-            if (tableList[i].columns[j].constraints >= 8 && !strcmp(tableList[i].columns[j].foreign_table->table_name, tableName))
+        for (j = 0; j < tableList[i].column_count; j++)
+            if (tableList[i].columns[j].constraints > 8 && !strcmp(tableList[i].columns[j].foreign_table->table_name, tableName))
                return 0;
-        }
+       
     return 1;        
 }

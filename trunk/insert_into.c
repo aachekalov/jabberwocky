@@ -121,21 +121,23 @@ char* checkConstraints (struct table t, char **cols, char **vals, int size, char
     char *line = (char *)calloc(1024, sizeof(char)); //!!
 	int i, index, count = 0;
 	if (size > t.column_count){
-		printf("Error: too many columns for %s", t.table_name);
+		printf("Error: too many columns for '%s'\n", t.table_name);
 		return NULL;
 	}
 
 	for(i = 0; i < t.column_count; i++){
         if ((index = isIn(t.columns[i].column_name, cols, size)) < 0){
-				if (t.columns[i].constraints & 1 == t.columns[i].constraints){
+			
+				if (t.columns[i].constraints & 1 == 1){
 				  if (isIn(t.columns[i].column_name, cols, size) < 0){
-				     printf("Error: column %s must be not null", t.columns[i].column_name);
+				     printf("Error: column '%s' must be not null\n", t.columns[i].column_name);
 				     return NULL;
                   }
                }else{
 			         strcat(line, "NULL|");
                } 
 		}else{
+			
                count ++;
                if (t.columns[i].type == 1){
                   char *end = vals[index];                  
@@ -148,72 +150,73 @@ char* checkConstraints (struct table t, char **cols, char **vals, int size, char
                if (t.columns[i].type == 2){
                   char *end = vals[index];                  
                   double val = strtod(vals[index], &end);
-                  if(strcmp(end, "") || (val >= FLT_MAX || val <= FLT_MIN)){ //((
-                          printf("Error: field %s must be float or your value is too big\n", t.columns[i].column_name);
+                  if(strcmp(end, "") || (val >= FLT_MAX || val <= FLT_MIN)){ 
+                          printf("Error: field '%s' must be float or your value is too big\n", t.columns[i].column_name);
                           return NULL;        
                   }                
                } 
                if (t.columns[i].type == 4){
-				   if (vals[index][0] == '\'' && vals[index][strlen(vals[index]) - 1] == '\''){
-						int g;
-						for (g = 0; g < strlen(vals[index]) - 2; g++)
-							vals[index][g] = vals[index][g + 1];
-						vals[index][strlen(vals[index]) - 2] = '\0';
-					}else{
-						printf("Error: field %s must be char, \"\'\" not faund", t.columns[i].column_name);
+				   if (vals[index][0] != '\'' || vals[index][strlen(vals[index]) - 1] != '\''){
+						printf("Error: field '%s' must be char, \"\'\" not faund\n", t.columns[i].column_name);
                         return NULL; 
 					}			
                } 
-               if (t.columns[i].constraints & 2 == t.columns[i].constraints || 
-                   t.columns[i].constraints & 4 == t.columns[i].constraints){
-                    if(!isValueExist(dbPath, t, t.columns[i].column_name, vals[index])){   
-                            printf("Error: field %s must be unique", t.columns[i].column_name);
+               if (t.columns[i].constraints & 2 == 2 || 
+                   t.columns[i].constraints & 4 == 4){
+                    if(!isValueExist(dbPath, &t, t.columns[i].column_name, vals[index])){   
+                            printf("Error: field %s must be unique\n", t.columns[i].column_name);
                             return NULL;
                     }                  
                }
                if (t.columns[i].constraints >= 8){
-                  if(isValueExist(dbPath, *t.columns[i].foreign_table, t.columns[i].foreign_key->column_name, vals[index])){
-                            printf("Error: non-existent foreign key");
+				  printf("in 8: OP-op\n");
+
+                  if(isValueExist(dbPath, t.columns[i].foreign_table, t.columns[i].foreign_key->column_name, vals[index])){
+                            printf("Error: non-existent foreign key\n");
                             return NULL;
                   }                    
                }
+               printf("OP-op\n");
                strcat(line, vals[index]);
                strcat(line, "|");            
 		}
 	}
 	if (count != size){
-              printf("Error: there are some non-existent fields in the query");
+              printf("Error: there are some non-existent fields in the query\n");
               return NULL;
     }
 	line[strlen(line) - 1] = '\0';
 	return line;
 }
 
-int isValueExist (char *dbPath, struct table t, char *columnName, char *value) {
+int isValueExist (char *dbPath, struct table *t, char *columnName, char *value) {
     int i, j, res = 1;
-    char *path = dbPath;
-    strcat(path, t.table_name);
-    for (i = 0; i < t.column_count; i++)
-        if (!strcmp(t.columns[i].column_name, columnName))
+    printf("is value exist: OP-op\n");
+    char *path = (char *)calloc(strlen(dbPath) + strlen(t->table_name) + 1, sizeof(char));
+    strcpy(path, dbPath);
+    strcat(path, t->table_name);
+    for (i = 0; i < t->column_count; i++)
+        if (!strcmp(t->columns[i].column_name, columnName))
            break;
-    char **values = (char **)malloc(t.column_count * sizeof(char));
     FILE *fd = fopen(path, "r");
     while(feof(fd)){    
-        for (j = 0; j < t.column_count; j++){
-            char buf[1024]; // What an awfull line!
-            if (j == t.column_count - 1)
+        for (j = 0; j < t->column_count; j++){
+            char *buf = (char *)calloc(1024, sizeof(char)); // What an awfull line!
+            if (j == t->column_count - 1)
                fscanf(fd, "%s\n", buf);
             else
                fscanf(fd, "%s|", buf);
             if (j == i && !strcmp(buf, value)){
                res = 0;
+               free(buf);
                break; 
             }
+            free(buf);
         }            
     }
-    for (i = 0; i < t.column_count; i++)
-        free(values[i]);
+    printf("is value exist: OP-op\n");
     fclose(fd);
+    free(path);
     return res;
 }
 
