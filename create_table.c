@@ -378,16 +378,16 @@ int check_foreign_key(struct column_declare *column, struct table *table_list, i
 	int i, j;
 	for (i = 0; i < size; i++) {
 		if (!strcmp(table_list[i].table_name, column->foreign_table->table_name)) {
-			free(column->foreign_table->table_name);
-			free(column->foreign_table);
-			column->foreign_table = NULL;
+			// free(column->foreign_table->table_name);
+			// free(column->foreign_table);
+			// column->foreign_table = NULL;
 			for (j = 0; j < table_list[i].column_count; j++) {
 				if (!strcmp(table_list[i].columns[j].column_name, column->foreign_key->column_name) &&
 					table_list[i].columns[j].type == column->foreign_key->type) {
-					free(column->foreign_key->column_name);
-					free(column->foreign_key);
-					column->foreign_table = &(table_list[i]);
-					column->foreign_key = &(table_list[i].columns[j]);
+					// free(column->foreign_key->column_name);
+					// free(column->foreign_key);
+					// column->foreign_table = &(table_list[i]);
+					// column->foreign_key = &(table_list[i].columns[j]);
 					return 0;
 				}
 				if (j == table_list[i].column_count - 1) {
@@ -421,21 +421,65 @@ int check_constraints(struct table *result, struct table *table_list, int size) 
 				free(result->table_name);
 				return -1;
 			}
-			printf("DEBUG: '%s' on foreign table: '%s'\n",
-				result->columns[i].column_name, result->columns[i].foreign_table->table_name);
-			printf("       on foreign key: '%s', type: %d, constraints: %d\n",
-				result->columns[i].foreign_key->column_name,
-				result->columns[i].foreign_key->type,
-				result->columns[i].foreign_key->constraints);
 		}
 	}
 	return 0;
 }
 
-int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size) {
-   *table_list = (struct table *)realloc(*table_list, (size + 1) * sizeof(struct table));
+int write_table_structure(struct table *new_table, struct table **table_list, int size) {
+	int i;
+   (*table_list) = (struct table *)realloc((*table_list), (size + 1) * sizeof(struct table));
+   
+   for (i = 0; i < new_table->column_count; i++) {
+		if (new_table->columns[i].foreign_table) {
+			printf("in write_table_structure DEBUG: '%s' on foreign table: '%s', column %d\n",
+				new_table->columns[i].column_name,
+				new_table->columns[i].foreign_table->table_name,
+				new_table->columns[i].foreign_table->column_count);
+			printf("       on foreign key: '%s', type: %d, constraints: %d\n",
+				new_table->columns[i].foreign_key->column_name,
+				new_table->columns[i].foreign_key->type,
+				new_table->columns[i].foreign_key->constraints);
+		}
+	}
+   
+   
    (*table_list)[size] = *new_table;
+   for (i = 0; i < (*table_list)[size].column_count; i++) {
+		if ((*table_list)[size].columns[i].foreign_table) {
+			printf("in write_table_structure DEBUG: '%s' on foreign table: '%s', column %d\n",
+				(*table_list)[size].columns[i].column_name,
+				(*table_list)[size].columns[i].foreign_table->table_name,
+				(*table_list)[size].columns[i].foreign_table->column_count);
+			printf("       on foreign key: '%s', type: %d, constraints: %d\n",
+				(*table_list)[size].columns[i].foreign_key->column_name,
+				(*table_list)[size].columns[i].foreign_key->type,
+				(*table_list)[size].columns[i].foreign_key->constraints);
+		}
+	}
    return 0;
+}
+
+int assign_foreign_key(struct column_declare *column, struct table *table_list, int size) {
+	int i, j;
+	for (i = 0; i < size; i++) {
+		if (!strcmp(table_list[i].table_name, column->foreign_table->table_name)) {
+			free(column->foreign_table->table_name);
+			free(column->foreign_table);
+			column->foreign_table = NULL;
+			for (j = 0; j < table_list[i].column_count; j++) {
+				if (!strcmp(table_list[i].columns[j].column_name, column->foreign_key->column_name) &&
+					table_list[i].columns[j].type == column->foreign_key->type) {
+					free(column->foreign_key->column_name);
+					free(column->foreign_key);
+					column->foreign_table = &(table_list[i]);
+					column->foreign_key = &(table_list[i].columns[j]);
+					return 0;
+				}
+			}
+		}
+		
+	}
 }
 
 int create_table_data_file(char *db_path, char *table_name) {
@@ -483,7 +527,26 @@ int create_table(int fd, char *db_path, char *create_query, struct table **table
 		return -1;
 	}
 
-	write_table_structure(fd, result, table_list, size);
+	write_table_structure(result, table_list, size);
+
+	int i;
+	for (i = 0; i < result->column_count; i++) {
+		if (result->columns[i].foreign_table) {
+			assign_foreign_key(&(result->columns[i]), *table_list, size);
+		}
+	}
+
+	for (i = 0; i < result->column_count; i++) {
+		if (result->columns[i].foreign_table) {
+			printf("DEBUG: '%s' on foreign table: '%s', column %d\n",
+				result->columns[i].column_name, result->columns[i].foreign_table->table_name,
+				result->columns[i].foreign_table->column_count);
+			printf("       on foreign key: '%s', type: %d, constraints: %d\n",
+				result->columns[i].foreign_key->column_name,
+				result->columns[i].foreign_key->type,
+				result->columns[i].foreign_key->constraints);
+		}
+	}
 
 	if (create_table_data_file(db_path, result->table_name)) {
 		printf("CALL: create_table_data_file\n");

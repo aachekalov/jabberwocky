@@ -198,14 +198,17 @@ int isValueExist (char *dbPath, struct table *t, char *columnName, char *value) 
     for (i = 0; i < t->column_count; i++)
         if (!strcmp(t->columns[i].column_name, columnName))
            break;
-    FILE *fd = fopen(path, "r");
-    while(feof(fd)){    
+    FILE *fd = fopen(path, "a+");
+   // rewind(fd);
+    while(!feof(fd)){  
+		printf("is value exist: EOF in\n");  
         for (j = 0; j < t->column_count; j++){
             char *buf = (char *)calloc(1024, sizeof(char)); // What an awfull line!
             if (j == t->column_count - 1)
                fscanf(fd, "%s\n", buf);
             else
                fscanf(fd, "%s|", buf);
+             printf("is value exist: buf = '%s'\n", buf);
             if (j == i && !strcmp(buf, value)){
                res = 0;
                free(buf);

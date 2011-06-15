@@ -56,6 +56,24 @@ int main(int argc, char *argv[]){
              if (ret == 0){
 				dirtyBit = 1;
                 q++; 
+                
+                
+                int i, j;
+				for(i = 0; i < q; i++){
+				printf("\nTable = '%s'\n", tableList[i].table_name);
+				for(j = 0; j < tableList[i].column_count; j++)
+					if(tableList[i].columns[j].constraints >= 8){
+						printf("\nColumn = '%s'\n", tableList[i].columns[j].column_name);
+						printf("\nForn table = '%s', qcol = %d\n", tableList[i].columns[j].foreign_table->table_name,
+													tableList[i].columns[j].foreign_table->column_count);
+						printf("\nForn key = '%s', constr = %d\n", tableList[i].columns[j].foreign_key->column_name, 
+													tableList[i].columns[j].foreign_key->constraints);
+					}	
+				}
+                
+                
+                
+                
 	     	 }
 			 free(firstWord);
        }else if (!strcmp(operation, "INSERT")){ 
@@ -112,8 +130,10 @@ int main(int argc, char *argv[]){
 		for(j = 0; j < tableList[i].column_count; j++)
 			if(tableList[i].columns[j].constraints >= 8){
 				printf("\nColumn = '%s'\n", tableList[i].columns[j].column_name);
-				printf("\nForn table = '%s'\n", tableList[i].columns[j].foreign_table->table_name);
-				printf("\nForn key = '%s'\n", tableList[i].columns[j].foreign_key->column_name);
+				printf("\nForn table = '%s', qcol = %d\n", tableList[i].columns[j].foreign_table->table_name,
+											tableList[i].columns[j].foreign_table->column_count);
+				printf("\nForn key = '%s', constr = %d\n", tableList[i].columns[j].foreign_key->column_name, 
+											tableList[i].columns[j].foreign_key->constraints);
 			}	
 	}
     
