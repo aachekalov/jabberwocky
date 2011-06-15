@@ -16,7 +16,7 @@ int is_in_table_list(char *table_name, struct table *table_list, int size);
 int check_foreign_key(struct column_declare *column, struct table *table_list, int size);
 int check_constraints(struct table *result, struct table *table_list, int size);
 
-int write_table_structure(int fd, struct table *new_table, struct table **table_list, int size);
+int write_table_structure(struct table *new_table, struct table **table_list, int size);
 
 int create_table_data_file(char *db_path, char *table_name);
 
