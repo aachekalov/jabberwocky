@@ -8,6 +8,7 @@ int parse_condition(char *condition) {
 	size_t condition_len = strlen(condition);
 	int i;
 	for (i = 0; i < condition_len; i++) {
+		
 	}
 }
 
