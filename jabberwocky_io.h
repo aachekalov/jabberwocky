@@ -14,10 +14,10 @@ struct column_declare {
 
 int writeTables(int fd, struct table *tableList, int size);
 
-int writeTable (int fd, struct table newTable);
+int writeTable (int fd, struct table *tableList, int index);
 
 int readTables (int fd, struct table **tableList);
 
-int getFieldIndex(int fd, char* tableName, char* fieldName);
+int getFieldIndex(char* tableName, char* fieldName, struct table *tableList, int ti, int fi);
 
-int setForeignKey(int foreignIndex, struct table *tableList, int structSize, int *a, int aSize, int ti, int fi);
+int setForeignKey(int foreignIndex, struct table *tableList, int ti, int fi);
