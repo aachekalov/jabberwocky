@@ -75,5 +75,6 @@ int removeDir(char *dirPath) {
 		perror("removeDir");
 		return -1; 
 	}
+	free(nextFile);
     return 0;
 }

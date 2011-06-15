@@ -106,7 +106,16 @@ int main(int argc, char *argv[]){
        free(operation);
        free(query);
     }
-	
+	int i, j;
+	for(i = 0; i < q; i++){
+		printf("\nTable = '%s'\n", tableList[i].table_name);
+		for(j = 0; j < tableList[i].column_count; j++)
+			if(tableList[i].columns[j].constraints >= 8){
+				printf("\nColumn = '%s'\n", tableList[i].columns[j].column_name);
+				printf("\nForn table = '%s'\n", tableList[i].columns[j].foreign_table->table_name);
+				printf("\nForn key = '%s'\n", tableList[i].columns[j].foreign_key->column_name);
+			}	
+	}
     
     if(dirtyBit){
 	    close(fd);
@@ -118,7 +127,7 @@ int main(int argc, char *argv[]){
 		lseek(fd, 0, SEEK_SET);
 	    writeTables(fd, tableList, q);
     }
-	int i, j;
+	//int i, j;
 	for (i = 0; i < q; i++){
 		for (j = 0; j < tableList[i].column_count; j++)
 			free(tableList[i].columns[j].column_name);

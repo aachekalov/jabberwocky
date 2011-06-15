@@ -53,7 +53,7 @@ int isForeignKey(char *tableName, struct table *tableList, int size){
     int i, j;
     for (i = 0; i < size; i++)
         for (j = 0; j < tableList[i].column_count; j++)
-            if (tableList[i].columns[j].constraints > 8 && !strcmp(tableList[i].columns[j].foreign_table->table_name, tableName))
+            if (tableList[i].columns[j].constraints >= 8 && !strcmp(tableList[i].columns[j].foreign_table->table_name, tableName))
                return 0;
        
     return 1;        
